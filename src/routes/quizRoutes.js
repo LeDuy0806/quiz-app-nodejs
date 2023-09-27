@@ -1,19 +1,19 @@
 import express from 'express';
 const quizRouter = express.Router();
 
-// import {
-//     getQuiz,
-//     getQuizzes,
-//     getQuizzesPublics,
-//     getTeacherQuizzes,
-//     getQuizzesBySearch,
-//     createQuiz,
-//     importQuiz,
-//     updateQuiz,
-//     deleteQuiz,
-//     likeQuiz,
-//     commentQuiz
-// } from '../controllers/quizController.js';
+import {
+    getQuiz,
+    getQuizzes,
+    getQuizzesPublics,
+    getTeacherQuizzes,
+    getQuizzesBySearch,
+    createQuiz,
+    importQuiz,
+    updateQuiz,
+    deleteQuiz,
+    likeQuiz,
+    commentQuiz
+} from '../controllers/quizController.js';
 
 import {
     addQuestion,
@@ -32,19 +32,19 @@ import {
 
 quizRouter.use(verifyAccessToken);
 
-// quizRouter.get('/:id', verifyPrivateQuiz, getQuiz);
-// quizRouter.get('/teacher/:teacherId', getTeacherQuizzes);
-// quizRouter.get('/public', getQuizzesPublics);
-// quizRouter.get('/search', getQuizzesBySearch);
+quizRouter.get('/:id', verifyPrivateQuiz, getQuiz);
+quizRouter.get('/teacher/:teacherId', getTeacherQuizzes);
+quizRouter.get('/public', getQuizzesPublics);
+quizRouter.get('/search', getQuizzesBySearch);
 
-// quizRouter.post('/', createQuiz);
-// quizRouter.post('/import', importQuiz);
-// quizRouter.post('/:id/commentQuiz', commentQuiz);
+quizRouter.post('/', createQuiz);
+quizRouter.post('/import', importQuiz);
+quizRouter.post('/:id/commentQuiz', commentQuiz);
 
-// quizRouter.put('/:id', verifyQuizOwner, updateQuiz);
-// quizRouter.put('/:id/likeQuiz', likeQuiz);
+quizRouter.put('/:id', verifyQuizOwner, updateQuiz);
+quizRouter.put('/:id/likeQuiz', likeQuiz);
 
-// quizRouter.delete('/:id', verifyQuizOwner, deleteQuiz);
+quizRouter.delete('/:id', verifyQuizOwner, deleteQuiz);
 
 quizRouter.get('/:quizId/questions/:questionId', getQuestion);
 quizRouter.get('/:quizId/questions', getQuestions);
