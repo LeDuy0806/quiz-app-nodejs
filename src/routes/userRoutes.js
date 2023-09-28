@@ -13,7 +13,8 @@ import {
 
 import {
     verifyAccessToken,
-    verifyUserAuthorization
+    verifyUserAuthorization,
+    verifyAdmin
 } from '../middlewares/authMiddleware.js';
 
 userRouter.use(verifyAccessToken);
