@@ -15,8 +15,9 @@ const verifyAccessToken = asyncHandler(async (req, res, next) => {
             throw new Error('User is not authorized or token is missing');
         }
 
-        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECERT, (err, decoded) => {
             if (err) {
+                console.log(err);
                 if (err instanceof TokenExpiredError) {
                     res.status(constants.UNAUTHORIZED);
                     throw new Error('Token expired');
@@ -36,7 +37,7 @@ const verifyAdmin = asyncHandler(async (req, res, next) => {
     let authHeader = req.headers.Authorization || req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer')) {
         token = authHeader.split(' ')[1];
-        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECERT, (err, decoded) => {
             if (err) {
                 if (err instanceof TokenExpiredError) {
                     res.status(constants.UNAUTHORIZED);
@@ -68,7 +69,7 @@ const verifyUserAuthorization = asyncHandler(async (req, res, next) => {
     let authHeader = req.headers.Authorization || req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer')) {
         token = authHeader.split(' ')[1];
-        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECERT, (err, decoded) => {
             if (err) {
                 if (err instanceof TokenExpiredError) {
                     res.status(constants.UNAUTHORIZED);
