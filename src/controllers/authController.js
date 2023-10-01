@@ -31,96 +31,79 @@ const generateRefreshToken = (data) => {
 };
 
 const loginUser = asyncHandler(async (req, res) => {
-    const { userName, password } = req.body;
+    const { mail, password } = req.body;
+    const user = await User.findOne({ mail });
 
-    if (!userName || !password) {
-        res.status(constants.BAD_REQUEST);
-        throw new Error('All fields are mandatory!');
+    if (!user) {
+        res.status(constants.UNAUTHORIZED);
+        throw new Error('Account not exist');
     } else {
-        const user = await User.findOne({ userName });
-        if (!user) {
-            res.status(constants.UNAUTHORIZED);
-            throw new Error('Account not exist');
-        } else {
-            if (user && (await bcrypt.compare(password + '', user.password))) {
-                if (!user.isVerified) {
-                    res.status(constants.UNAUTHORIZED);
-                    throw new Error('Not Verify');
-                }
-                //generate token
-                const accessToken = generateAccessToken({
-                    user: {
-                        userName: user.userName,
-                        userType: user.userType,
-                        mail: user.mail,
-                        id: user.id
-                    }
-                });
-                const refreshToken = generateRefreshToken({
-                    user: {
-                        userName: user.userName,
-                        userType: user.userType,
-                        mail: user.mail,
-                        id: user.id
-                    }
-                });
-                //store refresh token to DB
-                await new RefreshToken({
-                    user_id: user._id,
-                    token: refreshToken
-                }).save();
-
-                res.cookie('refreshToken', refreshToken, {
-                    httpOnly: true,
-                    secure: false,
-                    path: '/',
-                    sameSite: 'strict'
-                });
-
-                const { password, ...userWithoutPassword } = user._doc;
-                res.status(constants.OK).json({
-                    message: 'Login successfully',
-                    data: {
-                        user: userWithoutPassword,
-                        accessToken,
-                        refreshToken
-                    }
-                });
-            } else {
+        if (user && (await bcrypt.compare(password + '', user.password))) {
+            if (!user.isVerified) {
                 res.status(constants.UNAUTHORIZED);
-                throw new Error('Wrong password');
+                throw new Error('Not Verify');
             }
+            //generate token
+            const accessToken = generateAccessToken({
+                user: {
+                    userName: user.userName,
+                    userType: user.userType,
+                    mail: user.mail,
+                    id: user.id
+                }
+            });
+            const refreshToken = generateRefreshToken({
+                user: {
+                    userName: user.userName,
+                    userType: user.userType,
+                    mail: user.mail,
+                    id: user.id
+                }
+            });
+
+            //store refresh token to DB
+            await new RefreshToken({
+                user_id: user._id,
+                token: refreshToken
+            }).save();
+
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                secure: false,
+                path: '/',
+                sameSite: 'strict'
+            });
+
+            const { password, ...userWithoutPassword } = user._doc;
+            res.status(constants.OK).json({
+                auth: {
+                    user: userWithoutPassword,
+                    accessToken,
+                    refreshToken
+                }
+            });
+        } else {
+            res.status(constants.UNAUTHORIZED);
+            throw new Error('Wrong password');
         }
     }
 });
 
 const registerUser = asyncHandler(async (req, res) => {
-    const { firstName, lastName, userType, userName, mail, password } =
+    const { avatar, firstName, lastName, userType, userName, mail, password } =
         req.body;
-
-    const existingUserName = await User.findOne({ userName });
-    const existingEmail = await User.findOne({ mail });
-
-    if (existingEmail) {
-        res.status(constants.UNPROCESSABLE_ENTITY);
-        throw new Error('Email already exists');
-    }
-    if (existingUserName) {
-        res.status(constants.UNPROCESSABLE_ENTITY);
-        throw new Error('UserName already exists');
-    }
 
     //Hash password
     const hashedPassword = await bcrypt.hash(password + '', 10);
 
     try {
         const user = await User.create({
-            avatar: '',
+            avatar,
+            mail,
             userName,
             userType,
             firstName,
             lastName,
-            mail,
             emailToken: crypto.randomBytes(64).toString('hex'),
             isVerified: false,
             password: hashedPassword,
@@ -137,7 +120,7 @@ const registerUser = asyncHandler(async (req, res) => {
             throw new Error('User data is not valid');
         }
     } catch (error) {
-        res.status(constants.BAD_REQUEST);
+        res.status(constants.SERVER_ERROR);
         throw new Error(error);
     }
 });
