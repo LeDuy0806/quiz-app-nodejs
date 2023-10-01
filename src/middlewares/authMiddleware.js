@@ -5,6 +5,45 @@ import constants from '../constants/httpStatus.js';
 import User from '../models/userModel.js';
 const { TokenExpiredError } = jwt;
 
+const checkEmailExist = asyncHandler(async (req, res) => {
+    const { mail } = req.body;
+
+    const user = await User.findOne({ mail });
+    if (user) {
+        res.status(constants.UNPROCESSABLE_ENTITY);
+        throw new Error('Email already exists');
+    }
+
+    try {
+        res.status(constants.OK).json({
+            message: 'Email right!'
+        });
+    } catch (error) {
+        res.status(constants.SERVER_ERROR);
+        throw new Error(error);
+    }
+});
+
+const checkUserName = asyncHandler(async (req, res) => {
+    const { userName } = req.body;
+
+    const user = await User.findOne({ userName });
+
+    if (user) {
+        res.status(constants.UNPROCESSABLE_ENTITY);
+        throw new Error('userName already exists');
+    }
+
+    try {
+        res.status(constants.OK).json({
+            message: 'userName right!'
+        });
+    } catch (error) {
+        res.status(constants.SERVER_ERROR);
+        throw new Error(error);
+    }
+});
+
 const verifyAccessToken = asyncHandler(async (req, res, next) => {
     let token;
     let authHeader = req.headers.Authorization || req.headers.authorization;
@@ -121,6 +160,8 @@ const localVariables = (req, res, next) => {
 };
 
 export {
+    checkEmailExist,
+    checkUserName,
     verifyAccessToken,
     verifyAdmin,
     verifyUserAuthorization,
