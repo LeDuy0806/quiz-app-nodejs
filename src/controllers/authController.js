@@ -39,10 +39,10 @@ const loginUser = asyncHandler(async (req, res) => {
         throw new Error('Account not exist');
     } else {
         if (user && (await bcrypt.compare(password + '', user.password))) {
-            if (!user.isVerified) {
-                res.status(constants.UNAUTHORIZED);
-                throw new Error('Not Verify');
-            }
+            // if (!user.isVerified) {
+            //     res.status(constants.UNAUTHORIZED);
+            //     throw new Error('Not Verify');
+            // }
             //generate token
             const accessToken = generateAccessToken({
                 user: {
@@ -112,8 +112,39 @@ const registerUser = asyncHandler(async (req, res) => {
             friends: []
         });
         if (user) {
+            const accessToken = generateAccessToken({
+                user: {
+                    userName: user.userName,
+                    userType: user.userType,
+                    mail: user.mail,
+                    id: user.id
+                }
+            });
+
+            const refreshToken = generateRefreshToken({
+                user: {
+                    userName: user.userName,
+                    userType: user.userType,
+                    mail: user.mail,
+                    id: user.id
+                }
+            });
+
+            const { password, ...userWithoutPassword } = user._doc;
             res.status(constants.OK).json({
-                message: 'Register successfully!'
+                auth: {
+                    user: userWithoutPassword,
+                    accessToken,
+                    refreshToken
+                }
+            });
+
+            res.status(constants.OK).json({
+                auth: {
+                    user: userWithoutPassword,
+                    accessToken,
+                    refreshToken
+                }
             });
         } else {
             res.status(constants.BAD_REQUEST);
