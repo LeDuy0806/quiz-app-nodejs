@@ -54,7 +54,7 @@ const verifyAccessToken = asyncHandler(async (req, res, next) => {
             throw new Error('User is not authorized or token is missing');
         }
 
-        jwt.verify(token, process.env.ACCESS_TOKEN_SECERT, (err, decoded) => {
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
             if (err) {
                 console.log(err);
                 if (err instanceof TokenExpiredError) {
