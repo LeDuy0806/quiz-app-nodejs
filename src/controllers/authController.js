@@ -93,7 +93,6 @@ const registerUser = asyncHandler(async (req, res) => {
     const { avatar, firstName, lastName, userType, userName, mail, password } =
         req.body;
 
-    //Hash password
     const hashedPassword = await bcrypt.hash(password + '', 10);
 
     try {
@@ -200,8 +199,9 @@ const requestRefreshToken = asyncHandler(async (req, res) => {
 });
 
 const userLogout = asyncHandler(async (req, res) => {
+    const user_id = req.params.id;
+
     try {
-        const user_id = req.params.id;
         const result = await RefreshToken.findOneAndDelete({
             user_id: user_id
         });
