@@ -76,11 +76,9 @@ const loginUser = asyncHandler(async (req, res) => {
 
             const { password, ...userWithoutPassword } = user._doc;
             res.status(constants.OK).json({
-                auth: {
-                    user: userWithoutPassword,
-                    accessToken,
-                    refreshToken
-                }
+                user: userWithoutPassword,
+                accessToken,
+                refreshToken
             });
         } else {
             res.status(constants.UNAUTHORIZED);
@@ -116,7 +114,7 @@ const registerUser = asyncHandler(async (req, res) => {
                     userName: user.userName,
                     userType: user.userType,
                     mail: user.mail,
-                    id: user.id
+                    id: user._id
                 }
             });
 
@@ -125,25 +123,27 @@ const registerUser = asyncHandler(async (req, res) => {
                     userName: user.userName,
                     userType: user.userType,
                     mail: user.mail,
-                    id: user.id
+                    id: user._id
                 }
+            });
+
+            await new RefreshToken({
+                user_id: user._id,
+                token: refreshToken
+            }).save();
+
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                secure: false,
+                path: '/',
+                sameSite: 'strict'
             });
 
             const { password, ...userWithoutPassword } = user._doc;
             res.status(constants.OK).json({
-                auth: {
-                    user: userWithoutPassword,
-                    accessToken,
-                    refreshToken
-                }
-            });
-
-            res.status(constants.OK).json({
-                auth: {
-                    user: userWithoutPassword,
-                    accessToken,
-                    refreshToken
-                }
+                user: userWithoutPassword,
+                accessToken,
+                refreshToken
             });
         } else {
             res.status(constants.BAD_REQUEST);
@@ -199,19 +199,18 @@ const requestRefreshToken = asyncHandler(async (req, res) => {
 });
 
 const userLogout = asyncHandler(async (req, res) => {
-    const user_id = req.params.id;
-
+    const { id } = req.params;
     try {
         const result = await RefreshToken.findOneAndDelete({
-            user_id: user_id
+            user_id: id
         });
         if (!result) {
             return res.status(constants.BAD_REQUEST).json({
-                message: `User with id ${user_id} has been logged out `
+                message: `User with id ${id} has been logged out `
             });
         }
         res.status(constants.OK).json({
-            message: `Logged out user id ${user_id}`
+            message: `Logged out user id ${id}`
         });
     } catch (error) {
         res.status(constants.SERVER_ERROR);
