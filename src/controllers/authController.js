@@ -18,6 +18,7 @@ const generateAccessToken = (data) => {
         return null;
     }
 };
+
 const generateRefreshToken = (data) => {
     try {
         const token = jwt.sign(data, process.env.REFRESH_TOKEN_SECRET, {
@@ -28,6 +29,36 @@ const generateRefreshToken = (data) => {
         console.log(`Error in generate token + ${error}`);
         return null;
     }
+};
+
+const authorizeInfoUser = async (user) => {
+    const UserLogout = await RefreshToken.findOne({ user_id: user._id });
+    const accessToken = generateAccessToken({
+        user: {
+            userName: user.userName,
+            userType: user.userType,
+            mail: user.mail,
+            id: user.id
+        }
+    });
+    const refreshToken = generateRefreshToken({
+        user: {
+            userName: user.userName,
+            userType: user.userType,
+            mail: user.mail,
+            id: user.id
+        }
+    });
+
+    //store refresh token to DB
+    if (!UserLogout) {
+        await new RefreshToken({
+            user_id: user._id,
+            token: refreshToken
+        }).save();
+    }
+
+    return { accessToken, refreshToken };
 };
 
 const loginUser = asyncHandler(async (req, res) => {
@@ -43,29 +74,7 @@ const loginUser = asyncHandler(async (req, res) => {
             //     res.status(constants.UNAUTHORIZED);
             //     throw new Error('Not Verify');
             // }
-            //generate token
-            const accessToken = generateAccessToken({
-                user: {
-                    userName: user.userName,
-                    userType: user.userType,
-                    mail: user.mail,
-                    id: user.id
-                }
-            });
-            const refreshToken = generateRefreshToken({
-                user: {
-                    userName: user.userName,
-                    userType: user.userType,
-                    mail: user.mail,
-                    id: user.id
-                }
-            });
-
-            //store refresh token to DB
-            await new RefreshToken({
-                user_id: user._id,
-                token: refreshToken
-            }).save();
+            const { accessToken, refreshToken } = authorizeInfoUser(user);
 
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
@@ -83,6 +92,65 @@ const loginUser = asyncHandler(async (req, res) => {
         } else {
             res.status(constants.UNAUTHORIZED);
             throw new Error('Wrong password');
+        }
+    }
+});
+
+const loginSocial = asyncHandler(async (req, res) => {
+    const { email, image, name } = req.body;
+
+    const userSocial = await User.findOne({ mail: email });
+
+    if (userSocial) {
+        const { accessToken, refreshToken } = authorizeInfoUser(userSocial);
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: false,
+            path: '/',
+            sameSite: 'strict'
+        });
+
+        res.status(constants.OK).json({
+            user: userSocial,
+            accessToken,
+            refreshToken
+        });
+    } else {
+        try {
+            const user = await User.create({
+                avatar: image,
+                mail: email,
+                userName: name,
+                userType: 'Student',
+                firstName: 'NoF',
+                lastName: 'NoL',
+                emailToken: crypto.randomBytes(64).toString('hex'),
+                isVerified: false,
+                point: 0,
+                follows: [],
+                friends: []
+            });
+
+            if (user) {
+                const { accessToken, refreshToken } = authorizeInfoUser(user);
+
+                res.cookie('refreshToken', refreshToken, {
+                    httpOnly: true,
+                    secure: false,
+                    path: '/',
+                    sameSite: 'strict'
+                });
+
+                res.status(constants.OK).json({
+                    user,
+                    accessToken,
+                    refreshToken
+                });
+            }
+        } catch {
+            res.status(constants.SERVER_ERROR);
+            throw new Error(error);
         }
     }
 });
@@ -109,28 +177,7 @@ const registerUser = asyncHandler(async (req, res) => {
             friends: []
         });
         if (user) {
-            const accessToken = generateAccessToken({
-                user: {
-                    userName: user.userName,
-                    userType: user.userType,
-                    mail: user.mail,
-                    id: user._id
-                }
-            });
-
-            const refreshToken = generateRefreshToken({
-                user: {
-                    userName: user.userName,
-                    userType: user.userType,
-                    mail: user.mail,
-                    id: user._id
-                }
-            });
-
-            await new RefreshToken({
-                user_id: user._id,
-                token: refreshToken
-            }).save();
+            const { accessToken, refreshToken } = authorizeInfoUser(user);
 
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
@@ -249,6 +296,7 @@ const resetPassword = asyncHandler(async (req, res) => {
 
 export {
     registerUser,
+    loginSocial,
     loginUser,
     requestRefreshToken,
     userLogout,

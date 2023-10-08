@@ -3,16 +3,14 @@ import mongoose from 'mongoose';
 const userSchema = new mongoose.Schema({
     mail: {
         type: String,
-        required: true,
-        unique: true
+        required: true
     },
 
     userName: {
         type: String,
         required: true,
         minlength: 5,
-        maxlength: 15,
-        unique: true
+        maxlength: 30
     },
 
     firstName: {
@@ -38,8 +36,8 @@ const userSchema = new mongoose.Schema({
     },
 
     password: {
-        type: String,
-        required: true
+        type: String
+        // required: true
     },
 
     point: {

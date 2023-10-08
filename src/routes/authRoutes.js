@@ -4,6 +4,7 @@ const authRouter = express.Router();
 import {
     registerUser,
     loginUser,
+    loginSocial,
     requestRefreshToken,
     userLogout,
     resetPassword
@@ -20,6 +21,7 @@ authRouter.post('/checkUserName', checkUserName);
 authRouter.post('/register', registerUser);
 
 authRouter.post('/login', loginUser); //login
+authRouter.post('/loginSocial', loginSocial); //login
 authRouter.post('/refreshToken', requestRefreshToken); //refresh token
 authRouter.post('/logout/:id', userLogout); //log out
 
