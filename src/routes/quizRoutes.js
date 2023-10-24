@@ -32,10 +32,10 @@ import {
 
 quizRouter.use(verifyAccessToken);
 
-quizRouter.get('/:id', verifyPrivateQuiz, getQuiz);
-quizRouter.get('/teacher/:teacherId', getTeacherQuizzes);
 quizRouter.get('/public', getQuizzesPublics);
 quizRouter.get('/search', getQuizzesBySearch);
+quizRouter.get('/:id', verifyPrivateQuiz, getQuiz);
+quizRouter.get('/teacher/:teacherId', getTeacherQuizzes);
 
 quizRouter.post('/', createQuiz);
 quizRouter.post('/import', importQuiz);

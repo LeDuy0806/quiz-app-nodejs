@@ -7,7 +7,7 @@ import constants from '../constants/httpStatus.js';
 import crypto from 'crypto';
 
 //generate token
-const generateAccessToken = (data) => {
+const generateAccessToken = async (data) => {
     try {
         const token = jwt.sign(data, process.env.ACCESS_TOKEN_SECRET, {
             expiresIn: process.env.EXPIRE_TIME || '10m'
@@ -19,7 +19,7 @@ const generateAccessToken = (data) => {
     }
 };
 
-const generateRefreshToken = (data) => {
+const generateRefreshToken = async (data) => {
     try {
         const token = jwt.sign(data, process.env.REFRESH_TOKEN_SECRET, {
             expiresIn: '2d'
@@ -33,7 +33,7 @@ const generateRefreshToken = (data) => {
 
 const authorizeInfoUser = async (user) => {
     const UserLogout = await RefreshToken.findOne({ user_id: user._id });
-    const accessToken = generateAccessToken({
+    const accessToken = await generateAccessToken({
         user: {
             userName: user.userName,
             userType: user.userType,
@@ -41,7 +41,7 @@ const authorizeInfoUser = async (user) => {
             id: user.id
         }
     });
-    const refreshToken = generateRefreshToken({
+    const refreshToken = await generateRefreshToken({
         user: {
             userName: user.userName,
             userType: user.userType,
@@ -74,7 +74,9 @@ const loginUser = asyncHandler(async (req, res) => {
             //     res.status(constants.UNAUTHORIZED);
             //     throw new Error('Not Verify');
             // }
-            const { accessToken, refreshToken } = authorizeInfoUser(user);
+            const { accessToken, refreshToken } = await authorizeInfoUser(user);
+
+            // console.log({ accessToken, refreshToken, user });
 
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
@@ -248,7 +250,7 @@ const requestRefreshToken = asyncHandler(async (req, res) => {
 const userLogout = asyncHandler(async (req, res) => {
     const { id } = req.params;
     try {
-        const result = await RefreshToken.findOneAndDelete({
+        const result = await RefreshToken.deleteMany({
             user_id: id
         });
         if (!result) {
