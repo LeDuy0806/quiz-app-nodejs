@@ -139,7 +139,9 @@ const loginSocial = asyncHandler(async (req, res) => {
     const userSocial = await User.findOne({ mail: email });
 
     if (userSocial) {
-        const { accessToken, refreshToken } = authorizeInfoUser(userSocial);
+        const { accessToken, refreshToken } = await authorizeInfoUser(
+            userSocial
+        );
 
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
@@ -170,7 +172,9 @@ const loginSocial = asyncHandler(async (req, res) => {
             });
 
             if (user) {
-                const { accessToken, refreshToken } = authorizeInfoUser(user);
+                const { accessToken, refreshToken } = await authorizeInfoUser(
+                    user
+                );
 
                 res.cookie('refreshToken', refreshToken, {
                     httpOnly: true,
