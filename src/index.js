@@ -7,7 +7,6 @@ import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 
 import { Server } from 'socket.io';
-import { createServer } from 'node:http';
 
 import route from './routes/index.js';
 
@@ -16,7 +15,6 @@ connectDb();
 const Port = process.env.PORT || 5000;
 
 const app = express();
-const server = createServer(app);
 
 app.use(cors());
 app.use(cookieParser());
@@ -26,10 +24,16 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(route);
 app.use(errorHandler);
 
-const io = new Server(server, {
-    connectionStateRecovery: {}
+const server = app.listen(Port, () => {
+    console.log(`Server running on port ${Port}`);
 });
-io.listen(3001);
+
+const io = new Server(server, {
+    connectionStateRecovery: {},
+    cors: {
+        origin: 'http://localhost:3000'
+    }
+});
 
 let game;
 let gameIdCurrent;
@@ -147,8 +151,4 @@ io.on('connection', (socket) => {
         cb();
         socket.to(pinGame).emit('host-end-game');
     });
-});
-
-server.listen(Port, () => {
-    console.log(`Server running on port ${Port}`);
 });
