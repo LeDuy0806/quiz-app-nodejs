@@ -51,7 +51,7 @@ const verifyAccessToken = asyncHandler(async (req, res, next) => {
 
     if (authHeader && authHeader.startsWith('Bearer')) {
         token = authHeader.split(' ')[1];
-        if (!token) {
+        if (!token || token === 'null' || token === 'undefined') {
             res.status(constants.UNAUTHORIZED);
             throw new Error('User is not authorized or token is missing');
         }
