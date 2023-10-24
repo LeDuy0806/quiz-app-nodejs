@@ -6,11 +6,17 @@ const questionSchema = new mongoose.Schema(
             type: String
         },
 
+        field: {
+            type: String
+        },
+
         creator: { type: mongoose.SchemaTypes.ObjectId, ref: 'User' },
 
         backgroundImage: {
             type: String
         },
+
+        isPublic: { type: Boolean, required: true, default: true },
 
         questionIndex: { type: Number, required: true },
 

@@ -7,16 +7,16 @@ import constants from '../constants/httpStatus.js';
 import asyncHandler from 'express-async-handler';
 
 const createPlayerResult = asyncHandler(async (req, res) => {
-    const { playerId, gameId, score, answers } = req.body;
+    const { player, game, score, answers } = req.body;
     const playerResult = new PlayerResult({
-        playerId,
-        gameId,
+        player,
+        game,
         score,
         answers
     });
 
-    const playerExist = await PlayerResult.findOne({ playerId });
-    const gameIdExist = await PlayerResult.findOne({ gameId });
+    const playerExist = await PlayerResult.findOne({ player });
+    const gameIdExist = await PlayerResult.findOne({ game });
 
     try {
         if (!(playerExist && gameIdExist)) {
@@ -61,7 +61,7 @@ const deletePlayerResult = asyncHandler(async (req, res) => {
     }
 
     try {
-        await PlayerResult.findByIdAndRemove(id);
+        await PlayerResult.findOneAndRemove({ player: id });
         res.status(constants.OK).json({
             message: 'Player Result deleted successfully'
         });

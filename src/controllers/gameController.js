@@ -8,19 +8,16 @@ const createGame = asyncHandler(async (req, res) => {
     const { hostId, quizId, pin, isLive, playerList, playerResultList } =
         req.body;
 
-    const game = new Game({
-        host: hostId,
-        quiz: quizId,
-        date: new Date().toISOString(),
-        pin,
-        isLive,
-        playerList,
-        playerResultList
-    });
-
     try {
-        const newGame = await game.save();
-        res.status(constants.CREATE).json(newGame);
+        const game = await Game.create({
+            host: hostId,
+            quiz: quizId,
+            pin,
+            isLive,
+            playerList,
+            playerResultList
+        });
+        res.status(constants.CREATE).json(game);
     } catch (error) {
         res.status(constants.SERVER_ERROR).json({ message: error.message });
     }
@@ -36,8 +33,19 @@ const getGames = asyncHandler(async (req, res) => {
 });
 
 const getGame = asyncHandler(async (req, res) => {
+    const { id } = req.params;
     try {
-        const game = await Game.findById(req.params.id);
+        const game = await Game.findById(id)
+            .populate('host')
+            .populate({
+                path: 'quiz',
+                populate: {
+                    path: 'questionList',
+                    model: 'Question'
+                }
+            })
+            .populate('playerList')
+            .exec();
         if (!game) {
             return res
                 .status(constants.NOT_FOUND)
@@ -95,9 +103,10 @@ const updateGame = asyncHandler(async (req, res) => {
 const addPlayer = asyncHandler(async (req, res) => {
     const { gameId } = req.params;
     const { playerId } = req.body;
-    let game;
+
+    let game = await Game.findById(gameId);
+
     try {
-        game = await Game.findById(gameId);
         game.playerList.push(playerId);
         const updatedGame = await game.save();
         res.status(constants.OK).json(updatedGame);
@@ -106,4 +115,29 @@ const addPlayer = asyncHandler(async (req, res) => {
     }
 });
 
-export { createGame, getGames, getGame, deleteGame, updateGame, addPlayer };
+const removePlayer = asyncHandler(async (req, res) => {
+    const { gameId } = req.params;
+    const { playerId } = req.body;
+
+    let game = await Game.findById(gameId);
+
+    try {
+        game.playerList = game.playerList.filter(
+            (player) => String(player) !== playerId
+        );
+        const updatedGame = await game.save();
+        res.status(constants.OK).json(updatedGame);
+    } catch (error) {
+        res.status(constants.SERVER_ERROR).json({ message: error.message });
+    }
+});
+
+export {
+    createGame,
+    getGames,
+    getGame,
+    deleteGame,
+    updateGame,
+    addPlayer,
+    removePlayer
+};

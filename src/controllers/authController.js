@@ -68,15 +68,50 @@ const loginUser = asyncHandler(async (req, res) => {
     if (!user) {
         res.status(constants.UNAUTHORIZED);
         throw new Error('Account not exist');
-    } else {
-        if (user && (await bcrypt.compare(password + '', user.password))) {
-            // if (!user.isVerified) {
-            //     res.status(constants.UNAUTHORIZED);
-            //     throw new Error('Not Verify');
-            // }
-            const { accessToken, refreshToken } = await authorizeInfoUser(user);
+    }
 
-            // console.log({ accessToken, refreshToken, user });
+    if (user && !user.password) {
+        res.status(constants.UNAUTHORIZED);
+        throw new Error('Email is auth account');
+    }
+
+    // if (!user) {
+    //     res.status(constants.UNAUTHORIZED);
+    //     throw new Error('Account not exist');
+    // } else {
+    //     const checkPass = await bcrypt.compare(password + '', user.password);
+    //     if (checkPass) {
+    //         const { accessToken, refreshToken } = await authorizeInfoUser(user);
+
+    //         res.cookie('refreshToken', refreshToken, {
+    //             httpOnly: true,
+    //             secure: false,
+    //             path: '/',
+    //             sameSite: 'strict'
+    //         });
+
+    //         const { password, ...userWithoutPassword } = user._doc;
+    //         res.status(constants.OK).json({
+    //             user: userWithoutPassword,
+    //             accessToken,
+    //             refreshToken
+    //         });
+    //     } else {
+    //         res.status(constants.UNAUTHORIZED);
+    //         throw new Error('Wrong password');
+    //     }
+    // }
+
+    const checkPass = await bcrypt.compare(password + '', user.password);
+
+    if (!checkPass) {
+        res.status(constants.UNAUTHORIZED);
+        throw new Error('Wrong password');
+    }
+
+    try {
+        if (checkPass) {
+            const { accessToken, refreshToken } = await authorizeInfoUser(user);
 
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
@@ -91,10 +126,10 @@ const loginUser = asyncHandler(async (req, res) => {
                 accessToken,
                 refreshToken
             });
-        } else {
-            res.status(constants.UNAUTHORIZED);
-            throw new Error('Wrong password');
         }
+    } catch {
+        res.status(constants.UNAUTHORIZED);
+        throw new Error('Wrong password');
     }
 });
 
@@ -179,7 +214,7 @@ const registerUser = asyncHandler(async (req, res) => {
             friends: []
         });
         if (user) {
-            const { accessToken, refreshToken } = authorizeInfoUser(user);
+            const { accessToken, refreshToken } = await authorizeInfoUser(user);
 
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,

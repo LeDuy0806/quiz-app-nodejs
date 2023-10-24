@@ -7,18 +7,20 @@ import {
     getGame,
     updateGame,
     deleteGame,
-    addPlayer
+    addPlayer,
+    removePlayer
 } from '../controllers/gameController.js';
 
 import { verifyAccessToken } from '../middlewares/authMiddleware.js';
 
 gameRouter.use(verifyAccessToken);
-gameRouter.get('/', getGames);
 gameRouter.get('/:id', getGame);
+gameRouter.get('/', getGames);
 
 gameRouter.post('/', createGame);
 gameRouter.put('/:id', updateGame);
 gameRouter.delete('/:id', deleteGame);
-gameRouter.patch('/:gameId/players', addPlayer);
+gameRouter.patch('/:gameId/addPlayer', addPlayer);
+gameRouter.patch('/:gameId/removePlayer', removePlayer);
 
 export default gameRouter;
