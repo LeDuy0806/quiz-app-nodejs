@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import Leaderboard from '../models/leaderBoardModel.js';
+import LeaderBoard from '../models/leaderBoardModel.js';
 import Quiz from '../models/quizModel.js';
 import Game from '../models/gameModel.js';
 import constants from '../constants/httpStatus.js';
@@ -52,31 +52,29 @@ const getHistory = asyncHandler(async (req, res) => {
 });
 
 const createLeaderBoard = asyncHandler(async (req, res) => {
-    const { gameId, playerResultList, pin } = req.body;
+    const { gameId, pin, playerResultList, currentLeaderBoard } = req.body;
 
-    let game = await Game.findById(gameId);
-    let quiz = await Quiz.findById(game.quizId);
+    const game = await Game.findById(gameId);
+    const quiz = await Quiz.findById(game.quiz);
 
-    const leaderboard = new Leaderboard({
-        gameId,
+    const leaderBoard = new LeaderBoard({
+        game: gameId,
+        quiz: game.quiz,
         playerResultList,
-        pin
+        pin,
+        currentLeaderBoard
     });
 
     quiz.questionList.forEach((question) => {
-        leaderboard.questionLeaderboard.push({
+        leaderBoard.currentLeaderBoard.push({
             questionIndex: question.questionIndex,
-            questionResultList: []
-        });
-        leaderboard.currentLeaderboard.push({
-            questionIndex: question.questionIndex,
-            leaderboardList: []
+            leaderBoardList: []
         });
     });
 
     try {
-        const newLeaderboard = await leaderboard.save();
-        res.status(constants.CREATE).json(newLeaderboard);
+        const newLeaderBoard = await leaderBoard.save();
+        res.status(constants.CREATE).json(newLeaderBoard);
     } catch (error) {
         res.status(constants.SERVER_ERROR).json({ message: error.message });
     }
