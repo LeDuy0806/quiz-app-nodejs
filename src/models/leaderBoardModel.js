@@ -23,20 +23,20 @@ const leaderBoardSchema = new mongoose.Schema(
             }
         ],
 
-        questionLeaderBoard: [
-            {
-                questionIndex: { type: Number },
-                questionResultList: [
-                    {
-                        player: {
-                            type: mongoose.Schema.Types.ObjectId,
-                            ref: 'User'
-                        },
-                        playerPoints: { type: Number }
-                    }
-                ]
-            }
-        ],
+        // questionLeaderBoard: [
+        //     {
+        //         questionIndex: { type: Number },
+        //         questionResultList: [
+        //             {
+        //                 player: {
+        //                     type: mongoose.Schema.Types.ObjectId,
+        //                     ref: 'User'
+        //                 },
+        //                 playerPoints: { type: Number }
+        //             }
+        //         ]
+        //     }
+        // ],
 
         currentLeaderBoard: [
             {
@@ -58,5 +58,5 @@ const leaderBoardSchema = new mongoose.Schema(
     }
 );
 
-const Leaderboard = mongoose.model('Leaderboard', leaderBoardSchema);
-export default Leaderboard;
+const LeaderBoard = mongoose.model('LeaderBoard', leaderBoardSchema);
+export default LeaderBoard;

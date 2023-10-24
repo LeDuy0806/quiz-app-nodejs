@@ -13,7 +13,6 @@ import {
 import { verifyAccessToken } from '../middlewares/authMiddleware.js';
 
 leaderBoardRouter.use(verifyAccessToken);
-
 leaderBoardRouter.get('/:id', getLeaderBoard);
 leaderBoardRouter.get('/history/:id', getHistory);
 
