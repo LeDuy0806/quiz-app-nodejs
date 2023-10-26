@@ -37,6 +37,7 @@ const getTeacherQuizzes = asyncHandler(async (req, res) => {
             .populate('creator')
             .populate('questionList')
             .exec();
+
         res.status(constants.OK).json(quizzes);
     } catch (error) {
         res.status(constants.SERVER_ERROR).json({ message: error.message });

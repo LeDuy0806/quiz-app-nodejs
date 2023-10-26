@@ -52,14 +52,11 @@ const getHistory = asyncHandler(async (req, res) => {
 });
 
 const createLeaderBoard = asyncHandler(async (req, res) => {
-    const { gameId, pin, playerResultList, currentLeaderBoard } = req.body;
-
-    const game = await Game.findById(gameId);
-    const quiz = await Quiz.findById(game.quiz);
+    const { game, quiz, pin, playerResultList, currentLeaderBoard } = req.body;
 
     const leaderBoard = new LeaderBoard({
-        game: gameId,
-        quiz: game.quiz,
+        game: game._id,
+        quiz: quiz._id,
         playerResultList,
         pin,
         currentLeaderBoard

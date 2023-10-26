@@ -103,8 +103,10 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('host-leave-room', (pin) => {
+    socket.on('host-leave-room', (pin, cb) => {
+        cb();
         console.log('Host with id ' + socket.id + ' leave room: ' + pin);
+
         pinGames = pinGames.filter((item) => item !== pin);
         leaderBoardGame = leaderBoardGame.filter((item) => item.pin !== pin);
 

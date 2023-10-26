@@ -16,8 +16,6 @@ const questionSchema = new mongoose.Schema(
             type: String
         },
 
-        isPublic: { type: Boolean, required: true, default: true },
-
         questionIndex: { type: Number, required: true },
 
         questionType: {
@@ -36,6 +34,8 @@ const questionSchema = new mongoose.Schema(
             enum: ['Standard', 'Double', 'BasedOnTime'],
             required: true
         },
+
+        isPublic: { type: Boolean, required: true, default: true },
 
         answerTime: {
             type: Number,
