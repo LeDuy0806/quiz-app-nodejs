@@ -5,13 +5,12 @@ import constants from '../constants/httpStatus.js';
 import asyncHandler from 'express-async-handler';
 
 const createGame = asyncHandler(async (req, res) => {
-    const { hostId, quizId, pin, isLive, playerList, playerResultList } =
-        req.body;
+    const { host, quiz, pin, isLive, playerList, playerResultList } = req.body;
 
     try {
         const game = await Game.create({
-            host: hostId,
-            quiz: quizId,
+            host,
+            quiz,
             pin,
             isLive,
             playerList,
