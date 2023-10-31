@@ -25,7 +25,7 @@ const playerResultSchema = new mongoose.Schema({
             },
             answers: [String],
             time: { type: Number },
-            points: {
+            point: {
                 type: Number,
                 default: 0
             }

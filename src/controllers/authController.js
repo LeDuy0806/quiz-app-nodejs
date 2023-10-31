@@ -75,33 +75,6 @@ const loginUser = asyncHandler(async (req, res) => {
         throw new Error('Email is auth account');
     }
 
-    // if (!user) {
-    //     res.status(constants.UNAUTHORIZED);
-    //     throw new Error('Account not exist');
-    // } else {
-    //     const checkPass = await bcrypt.compare(password + '', user.password);
-    //     if (checkPass) {
-    //         const { accessToken, refreshToken } = await authorizeInfoUser(user);
-
-    //         res.cookie('refreshToken', refreshToken, {
-    //             httpOnly: true,
-    //             secure: false,
-    //             path: '/',
-    //             sameSite: 'strict'
-    //         });
-
-    //         const { password, ...userWithoutPassword } = user._doc;
-    //         res.status(constants.OK).json({
-    //             user: userWithoutPassword,
-    //             accessToken,
-    //             refreshToken
-    //         });
-    //     } else {
-    //         res.status(constants.UNAUTHORIZED);
-    //         throw new Error('Wrong password');
-    //     }
-    // }
-
     const checkPass = await bcrypt.compare(password + '', user.password);
 
     if (!checkPass) {
@@ -150,49 +123,47 @@ const loginSocial = asyncHandler(async (req, res) => {
             sameSite: 'strict'
         });
 
-        res.status(constants.OK).json({
+        return res.status(constants.OK).json({
             user: userSocial,
             accessToken,
             refreshToken
         });
-    } else {
-        try {
-            const user = await User.create({
-                avatar: image,
-                mail: email,
-                userName: name,
-                userType: 'Student',
-                firstName: 'NoF',
-                lastName: 'NoL',
-                emailToken: crypto.randomBytes(64).toString('hex'),
-                isVerified: false,
-                point: 0,
-                follows: [],
-                friends: []
+    }
+
+    try {
+        const user = await User.create({
+            avatar: image,
+            mail: email,
+            userName: name,
+            userType: 'Student',
+            firstName: 'NoF',
+            lastName: 'NoL',
+            emailToken: crypto.randomBytes(64).toString('hex'),
+            isVerified: false,
+            point: 0,
+            follows: [],
+            friends: []
+        });
+
+        if (user) {
+            const { accessToken, refreshToken } = await authorizeInfoUser(user);
+
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                secure: false,
+                path: '/',
+                sameSite: 'strict'
             });
 
-            if (user) {
-                const { accessToken, refreshToken } = await authorizeInfoUser(
-                    user
-                );
-
-                res.cookie('refreshToken', refreshToken, {
-                    httpOnly: true,
-                    secure: false,
-                    path: '/',
-                    sameSite: 'strict'
-                });
-
-                res.status(constants.OK).json({
-                    user,
-                    accessToken,
-                    refreshToken
-                });
-            }
-        } catch {
-            res.status(constants.SERVER_ERROR);
-            throw new Error(error);
+            return res.status(constants.OK).json({
+                user,
+                accessToken,
+                refreshToken
+            });
         }
+    } catch (error) {
+        res.status(constants.SERVER_ERROR);
+        throw new Error(error);
     }
 });
 

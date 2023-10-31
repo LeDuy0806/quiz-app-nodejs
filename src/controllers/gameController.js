@@ -58,6 +58,7 @@ const getGame = asyncHandler(async (req, res) => {
 
 const deleteGame = asyncHandler(async (req, res) => {
     const { id } = req.params;
+
     if (!mongoose.Types.ObjectId.isValid(id)) {
         return res.status(constants.NOT_FOUND).json(`No game with id: ${id}`);
     }
@@ -131,6 +132,21 @@ const removePlayer = asyncHandler(async (req, res) => {
     }
 });
 
+const addPlayerResult = asyncHandler(async (req, res) => {
+    const { gameId } = req.params;
+    const { playerResultId } = req.body;
+
+    try {
+        const game = await Game.findById(gameId);
+        game.playerResultList.push(playerResultId);
+
+        const updatedGame = await game.save();
+        res.status(constants.OK).json(updatedGame);
+    } catch (error) {
+        res.status(constants.SERVER_ERROR).json({ message: error.message });
+    }
+});
+
 export {
     createGame,
     getGames,
@@ -138,5 +154,6 @@ export {
     deleteGame,
     updateGame,
     addPlayer,
-    removePlayer
+    removePlayer,
+    addPlayerResult
 };
