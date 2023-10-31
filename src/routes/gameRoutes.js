@@ -8,7 +8,8 @@ import {
     updateGame,
     deleteGame,
     addPlayer,
-    removePlayer
+    removePlayer,
+    addPlayerResult
 } from '../controllers/gameController.js';
 
 import { verifyAccessToken } from '../middlewares/authMiddleware.js';
@@ -22,5 +23,6 @@ gameRouter.put('/:id', updateGame);
 gameRouter.delete('/:id', deleteGame);
 gameRouter.patch('/:gameId/addPlayer', addPlayer);
 gameRouter.patch('/:gameId/removePlayer', removePlayer);
+gameRouter.patch('/:gameId/addPlayerResult', addPlayerResult);
 
 export default gameRouter;

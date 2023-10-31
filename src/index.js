@@ -66,12 +66,12 @@ io.on('connection', (socket) => {
         newLeaderBoard = JSON.parse(JSON.stringify(newLeaderBoard));
         leaderBoardGame.push(newLeaderBoard);
 
-        console.log(
-            'Host with id ' +
-                socket.id +
-                ' started game and joined room: ' +
-                game.pin
-        );
+        // console.log(
+        //     'Host with id ' +
+        //         socket.id +
+        //         ' started game and joined room: ' +
+        //         game.pin
+        // );
 
         socket.join(game.pin);
     });
@@ -86,14 +86,14 @@ io.on('connection', (socket) => {
             addPlayer(user.userName, user._id, user.avatar, socketId);
             cb('correct', user._id, gameIdCurrent);
 
-            console.log(
-                'Student ' +
-                    user.userName +
-                    ' with id ' +
-                    socket.id +
-                    ' joined room ' +
-                    pin
-            );
+            // console.log(
+            //     'Student ' +
+            //         user.userName +
+            //         ' with id ' +
+            //         socket.id +
+            //         ' joined room ' +
+            //         pin
+            // );
             socket.join(pin);
 
             const player = getPlayer(socketId);
@@ -105,7 +105,8 @@ io.on('connection', (socket) => {
 
     socket.on('host-leave-room', (pin, cb) => {
         cb();
-        console.log('Host with id ' + socket.id + ' leave room: ' + pin);
+
+        // console.log('Host with id ' + socket.id + ' leave room: ' + pin);
 
         pinGames = pinGames.filter((item) => item !== pin);
         leaderBoardGame = leaderBoardGame.filter((item) => item.pin !== pin);
@@ -117,7 +118,7 @@ io.on('connection', (socket) => {
     socket.on('student-leave-room', (pin, cb) => {
         cb();
 
-        console.log('Student with id ' + socket.id + ' leave room: ' + pin);
+        // console. log('Student with id ' + socket.id + ' leave room: ' + pin);
         let player = getPlayer(socket.id);
 
         socket.to(pin).emit('student-leave', player, pin);
@@ -125,32 +126,75 @@ io.on('connection', (socket) => {
     });
 
     socket.on('start-game', (leaderBoardId) => {
-        console.log('Start Game');
+        // console.log('Start Game');
         socket.to(game?.pin).emit('host-start-game', leaderBoardId);
     });
 
     socket.on('countdown-preview', (gamePin, cb) => {
         cb();
+
         socket.to(gamePin).emit('host-countdown-preview', gamePin);
     });
 
     socket.on('start-question-timer', (gamePin, questionIndex, cb) => {
-        console.log('Send question ' + questionIndex + ' data to players');
-        socket.to(gamePin).emit('host-start-question-timer', questionIndex);
         cb();
+
+        // console.log('Send question ' + questionIndex + ' data to players');
+        socket.to(gamePin).emit('host-start-question-timer', questionIndex);
     });
 
-    socket.on('send-answer-to-host', (data, score, pinGame, leaderBoardId) => {
-        let player = getPlayer(socket.id);
-        // console.log(data, player.userName, score, pinGame, leaderBoardId);
-        socket
-            .to(pinGame)
-            .emit('get-answer-from-player', data, leaderBoardId, score, player);
+    socket.on('start-question-result', (gamePin, questionIndex, cb) => {
+        cb();
+
+        // console.log('Start question result' + questionIndex);
+        socket.to(gamePin).emit('host-start-question-result', questionIndex);
+    });
+
+    socket.on(
+        'send-answer-to-host',
+        (leaderBoardId, pinGame, questionIndex, result) => {
+            // console.log(
+            //     'Student with id ' + socket.id + ' send answer for teacher'
+            // );
+            socket
+                .to(pinGame)
+                .emit(
+                    'get-answer-from-player',
+                    leaderBoardId,
+                    pinGame,
+                    questionIndex,
+                    result
+                );
+        }
+    );
+
+    socket.on('send-other-result', (pinGame, resultPlayer) => {
+        // console.log(resultPlayer, pinGame);
+        socket.to(pinGame).emit('host-send-other-result', resultPlayer);
+    });
+
+    socket.on('show-leaderBoard', (gamePin, questionIndex, cb) => {
+        cb();
+
+        // console.log('Show leaderBoard ' + questionIndex + ' to players');
+        socket.to(gamePin).emit('host-show-leaderBoard', questionIndex);
     });
 
     socket.on('end-game', (pinGame, cb) => {
-        console.log('End', pinGame);
         cb();
         socket.to(pinGame).emit('host-end-game');
+        socket.leave(pinGame);
+    });
+
+    socket.on('host-end-game', (pinGame, cb) => {
+        cb();
+        socket.to(pinGame).emit('host-end-game');
+        socket.leave(pinGame);
+    });
+
+    socket.on('player-end-game', (pinGame, cb) => {
+        cb();
+        socket.to(pinGame).emit('player-end-game');
+        socket.leave(pinGame);
     });
 });

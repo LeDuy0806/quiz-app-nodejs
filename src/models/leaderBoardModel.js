@@ -23,21 +23,6 @@ const leaderBoardSchema = new mongoose.Schema(
             }
         ],
 
-        // questionLeaderBoard: [
-        //     {
-        //         questionIndex: { type: Number },
-        //         questionResultList: [
-        //             {
-        //                 player: {
-        //                     type: mongoose.Schema.Types.ObjectId,
-        //                     ref: 'User'
-        //                 },
-        //                 playerPoints: { type: Number }
-        //             }
-        //         ]
-        //     }
-        // ],
-
         currentLeaderBoard: [
             {
                 questionIndex: { type: Number },
@@ -47,6 +32,7 @@ const leaderBoardSchema = new mongoose.Schema(
                             type: mongoose.Schema.Types.ObjectId,
                             ref: 'User'
                         },
+                        pointAnswerQuestion: { type: Number },
                         playerCurrentScore: { type: Number }
                     }
                 ]

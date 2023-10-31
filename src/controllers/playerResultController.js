@@ -9,21 +9,23 @@ import asyncHandler from 'express-async-handler';
 const createPlayerResult = asyncHandler(async (req, res) => {
     const { player, game, score, answers } = req.body;
     const playerResult = new PlayerResult({
-        player,
+        player: player._id,
         game,
         score,
         answers
     });
 
-    const playerExist = await PlayerResult.findOne({ player });
-    const gameIdExist = await PlayerResult.findOne({ game });
+    const playerGameExist = await PlayerResult.findOne({ player, game });
+    if (playerGameExist) {
+        res.status(constants.UNPROCESSABLE_ENTITY);
+        throw new Error('PlayerResults already exists');
+    }
 
     try {
-        if (!(playerExist && gameIdExist)) {
-            const newPlayerResult = await playerResult.save();
-            res.status(constants.CREATE).json(newPlayerResult);
-        }
+        const newPlayerResult = await playerResult.save();
+        res.status(constants.CREATE).json(newPlayerResult);
     } catch (error) {
+        console.log(error);
         res.status(constants.SERVER_ERROR).json({ message: error.message });
     }
 });
@@ -78,15 +80,19 @@ const updatePlayerResult = asyncHandler(async (req, res) => {
             .json(`No PlayerResult with id: ${id}`);
     }
 
-    const { playerId, gameId, score } = req.body;
+    const { answers, score } = req.body;
     const playerResult = new PlayerResult({
         _id: id,
-        playerId,
-        gameId,
+        answers,
         score
     });
 
+    const result = await PlayerResult.findById(id);
+    const user = await User.findById(String(result.player));
+    user.point += score;
+
     try {
+        await user.save();
         const updatedPlayerResult = await PlayerResult.findByIdAndUpdate(
             id,
             playerResult,

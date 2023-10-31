@@ -6,7 +6,7 @@ import constants from '../constants/httpStatus.js';
 import asyncHandler from 'express-async-handler';
 
 const getHistory = asyncHandler(async (req, res) => {
-    const leaderBoards = await Leaderboard.find();
+    const leaderBoards = await LeaderBoard.find();
 
     const games = await Game.find();
     const leaderBoardWithGame = await Promise.all(
@@ -21,18 +21,6 @@ const getHistory = asyncHandler(async (req, res) => {
         })
     );
     try {
-        // const gameWithQuiz = await Promise.all(
-        //     games.map(async (game) => {
-        //         const quiz = await Quiz.find({
-        //             _id: game.quizId
-        //         });
-        //         return {
-        //             ...game._doc,
-        //             quiz
-        //         };
-        //     })
-        // );
-
         const leaderBoardWithGameQuiz = await Promise.all(
             leaderBoardWithGame.map(async (leaderBoard) => {
                 const quiz = await Quiz.find({
@@ -62,13 +50,6 @@ const createLeaderBoard = asyncHandler(async (req, res) => {
         currentLeaderBoard
     });
 
-    quiz.questionList.forEach((question) => {
-        leaderBoard.currentLeaderBoard.push({
-            questionIndex: question.questionIndex,
-            leaderBoardList: []
-        });
-    });
-
     try {
         const newLeaderBoard = await leaderBoard.save();
         res.status(constants.CREATE).json(newLeaderBoard);
@@ -79,16 +60,17 @@ const createLeaderBoard = asyncHandler(async (req, res) => {
 
 const deleteLeaderBoard = asyncHandler(async (req, res) => {
     const { id } = req.params;
+
     if (!mongoose.Types.ObjectId.isValid(id)) {
         return res
             .status(constants.NOT_FOUND)
-            .json(`No leaderboard with id: ${id}`);
+            .json(`No leaderBoard with id: ${id}`);
     }
 
     try {
-        await Leaderboard.findByIdAndRemove(id);
+        await LeaderBoard.findByIdAndRemove(id);
         res.status(constants.OK).json({
-            message: 'Leaderboard deleted succesfully'
+            message: 'LeaderBoard deleted successfully'
         });
     } catch (error) {
         res.status(constants.SERVER_ERROR).json({ message: error.message });
@@ -96,70 +78,60 @@ const deleteLeaderBoard = asyncHandler(async (req, res) => {
 });
 
 const getLeaderBoard = asyncHandler(async (req, res) => {
-    let leaderboard;
+    const { leaderBoardId } = req.params;
+
     try {
-        leaderboard = await Leaderboard.findById(req.params.id);
-        if (leaderboard == null) {
+        const leaderBoard = await LeaderBoard.findById(leaderBoardId)
+            .populate({
+                path: 'currentLeaderBoard.leaderBoardList',
+                populate: {
+                    path: 'player',
+                    model: 'User'
+                }
+            })
+            .exec();
+        if (!leaderBoard) {
             return res
                 .status(constants.NOT_FOUND)
-                .json({ message: 'Leaderboard not found' });
+                .json({ message: 'LeaderBoard not found' });
         }
-        res.status(constants.OK).json(leaderboard);
+
+        res.status(constants.OK).json(leaderBoard);
     } catch (error) {
+        console.log(error);
         res.status(constants.SERVER_ERROR).json({ message: error.message });
     }
 });
 
 const addPlayerResult = asyncHandler(async (req, res) => {
-    const { leaderboardId } = req.params;
+    const { leaderBoardId } = req.params;
     const { playerResultId } = req.body;
-    let leaderboard;
 
     try {
-        leaderboard = await Leaderboard.findById(leaderboardId);
-        leaderboard.playerResultList.push(playerResultId);
-        const newLeaderboard = await leaderboard.save();
-        res.status(constants.OK).json(newLeaderboard);
-    } catch (error) {
-        res.status(constants.SERVER_ERROR).json({ message: error.message });
-    }
-});
+        const leaderBoard = await LeaderBoard.findById(leaderBoardId);
+        leaderBoard.playerResultList.push(playerResultId);
 
-const updateQuestionLeaderBoard = asyncHandler(async (req, res) => {
-    const { leaderboardId } = req.params;
-    const { questionIndex, playerId, playerPoints } = req.body;
-    let leaderboard;
-
-    try {
-        leaderboard = await Leaderboard.findById(leaderboardId);
-        leaderboard.questionLeaderboard[
-            questionIndex - 1
-        ].questionResultList.push({
-            playerId,
-            playerPoints
-        });
-
-        const newLeaderboard = await leaderboard.save();
-        res.status(constants.OK).json(newLeaderboard);
+        const newLeaderBoard = await leaderBoard.save();
+        res.status(constants.OK).json(newLeaderBoard);
     } catch (error) {
         res.status(constants.SERVER_ERROR).json({ message: error.message });
     }
 });
 
 const updateCurrentLeaderBoard = asyncHandler(async (req, res) => {
-    const { leaderboardId } = req.params;
-    const { questionIndex, playerId, playerCurrentScore } = req.body;
-    let leaderboard;
-    try {
-        leaderboard = await Leaderboard.findById(leaderboardId);
-        leaderboard.currentLeaderboard[questionIndex - 1].leaderboardList.push({
-            playerId,
-            playerCurrentScore
-        });
+    const { leaderBoardId } = req.params;
+    const { questionIndex, formUpdate } = req.body;
 
-        const newLeaderboard = await leaderboard.save();
-        res.status(constants.OK).json(newLeaderboard);
+    const leaderBoardCurrent = { questionIndex, leaderBoardList: formUpdate };
+
+    try {
+        const leaderBoard = await LeaderBoard.findById(leaderBoardId);
+        leaderBoard.currentLeaderBoard.push(leaderBoardCurrent);
+
+        const newLeaderBoard = await leaderBoard.save();
+        res.status(constants.OK).json(newLeaderBoard);
     } catch (error) {
+        console.log(error);
         res.status(constants.SERVER_ERROR).json({ message: error.message });
     }
 });
@@ -170,6 +142,5 @@ export {
     deleteLeaderBoard,
     getLeaderBoard,
     addPlayerResult,
-    updateQuestionLeaderBoard,
     updateCurrentLeaderBoard
 };
