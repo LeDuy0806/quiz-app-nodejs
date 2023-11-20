@@ -16,7 +16,7 @@ const verifyQuizOwner = asyncHandler(async (req, res, next) => {
         //jwt verify
         jwt.verify(
             token,
-            process.env.ACCESS_TOKEN_SECERT,
+            process.env.ACCESS_TOKEN_SECRET,
             async (err, decoded) => {
                 if (err) {
                     if (err.name == 'TokenExpiredError') {
@@ -66,10 +66,9 @@ const verifyPrivateQuiz = asyncHandler(async (req, res, next) => {
             res.status(constants.UNAUTHORIZED);
             throw new Error('User is not authorized or token is missing');
         }
-        //jwt verify
         jwt.verify(
             token,
-            process.env.ACCESS_TOKEN_SECERT,
+            process.env.ACCESS_TOKEN_SECRET,
             async (err, decoded) => {
                 if (err) {
                     if (err.name == 'TokenExpiredError') {
@@ -77,7 +76,7 @@ const verifyPrivateQuiz = asyncHandler(async (req, res, next) => {
                         throw new Error('Token expired');
                     }
                     res.status(constants.UNAUTHORIZED);
-                    throw new Error('User is not authorized');
+                    throw new Error(err.message);
                 }
                 const user = decoded.user;
                 if (user.userType == 'Admin') {

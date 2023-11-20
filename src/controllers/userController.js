@@ -85,6 +85,29 @@ const updateUser = asyncHandler(async (req, res) => {
     }
 });
 
+export const changePassword = asyncHandler(async (req, res) => {
+    const { id } = req.user;
+    const { oldPassword, newPassword } = req.body;
+
+    const user = await User.findById(id);
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+
+    if (!isMatch) {
+        return res.status(constants.BAD_REQUEST).json({
+            message: 'Old password is not correct'
+        });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword + '', 10);
+
+    await User.findByIdAndUpdate(id, { password: hashedPassword });
+
+    return res.json({
+        message: 'Change password successfully'
+    });
+});
+
 const deleteUser = asyncHandler(async (req, res) => {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id) || !User.findById(id)) {
