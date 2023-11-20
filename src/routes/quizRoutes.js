@@ -32,6 +32,7 @@ import {
 
 quizRouter.use(verifyAccessToken);
 
+quizRouter.get('/', getQuizzes);
 quizRouter.get('/public', getQuizzesPublics);
 quizRouter.get('/search', getQuizzesBySearch);
 quizRouter.get('/:id', verifyPrivateQuiz, getQuiz);

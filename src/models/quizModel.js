@@ -14,7 +14,11 @@ const quizSchema = new mongoose.Schema(
 
         isPublic: { type: Boolean, required: true, default: true },
 
-        field: { type: String },
+        category: { type: mongoose.SchemaTypes.ObjectId, ref: 'Category' },
+
+        grade: { type: mongoose.SchemaTypes.ObjectId, ref: 'Grade' },
+
+        tags: [String],
 
         pointsPerQuestion: {
             type: Number,
@@ -27,8 +31,6 @@ const quizSchema = new mongoose.Schema(
         },
 
         likesCount: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'User' }],
-
-        comments: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'Message' }],
 
         questionList: [
             {

@@ -4,7 +4,11 @@ import constants from '../constants/httpStatus.js';
 import Quiz from '../models/quizModel.js';
 import Question from '../models/questionModel.js';
 import User from '../models/userModel.js';
+import { findQuizByCreator } from '../services/quiz.services.js';
 
+//desc   Get quiz with id
+//route  GET /api/quiz/:id
+//access Authenticated user
 const getQuiz = asyncHandler(async (req, res) => {
     try {
         const quiz = await Quiz.findById(req.params.id);
@@ -20,6 +24,9 @@ const getQuiz = asyncHandler(async (req, res) => {
     }
 });
 
+//desc   Get all quizzes
+//route  GET /api/quiz
+//access Authenticated user
 const getQuizzes = asyncHandler(async (req, res) => {
     try {
         const quizzes = await Quiz.find();
@@ -30,13 +37,18 @@ const getQuizzes = asyncHandler(async (req, res) => {
     }
 });
 
+//desc   Get all quizzes of a teacher
+//route  GET /api/quiz/teacher/:teacherId
+//access Authenticated user
 const getTeacherQuizzes = asyncHandler(async (req, res) => {
     const { teacherId } = req.params;
     try {
-        const quizzes = await Quiz.find({ creator: teacherId })
-            .populate('creator')
-            .populate('questionList')
-            .exec();
+        const user = await User.findById(teacherId);
+        if (!user) {
+            res.status(constants.NOT_FOUND);
+            throw new Error('User not found');
+        }
+        const quizzes = await findQuizByCreator(teacherId);
 
         res.status(constants.OK).json(quizzes);
     } catch (error) {
@@ -44,6 +56,9 @@ const getTeacherQuizzes = asyncHandler(async (req, res) => {
     }
 });
 
+//desc   Get all public quizzes
+//route  GET /api/quiz/public
+//access Authenticated user
 const getQuizzesPublics = asyncHandler(async (req, res) => {
     try {
         const quizzes = await Quiz.find({ isPublic: true });
@@ -76,6 +91,9 @@ const getQuizzesPublics = asyncHandler(async (req, res) => {
 //   }
 // };
 
+//desc   Get all quizzes by search
+//route  GET /api/quiz/search?searchQuery=...&tags=...
+//access Authenticated user
 const getQuizzesBySearch = asyncHandler(async (req, res) => {
     const { searchQuery, tags } = req.query;
 
@@ -94,6 +112,9 @@ const getQuizzesBySearch = asyncHandler(async (req, res) => {
     }
 });
 
+//desc   Create a quiz
+//route  POST /api/quiz
+//access Authenticated user
 const createQuiz = asyncHandler(async (req, res) => {
     const {
         name,
@@ -168,6 +189,9 @@ const createQuiz = asyncHandler(async (req, res) => {
     }
 });
 
+//desc   Import a quiz
+//route  POST /api/quiz/import
+//access Authenticated user
 const importQuiz = asyncHandler(async (req, res) => {
     const { quizData, userId } = req.body;
 
@@ -223,6 +247,9 @@ const importQuiz = asyncHandler(async (req, res) => {
     }
 });
 
+//desc   Update a quiz
+//route  PATCH /api/quiz/:id
+//access Authenticated user
 const updateQuiz = asyncHandler(async (req, res) => {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -267,6 +294,9 @@ const updateQuiz = asyncHandler(async (req, res) => {
     }
 });
 
+//desc   Delete a quiz
+//route  DELETE /api/quiz/:id
+//access Authenticated user
 const deleteQuiz = asyncHandler(async (req, res) => {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {

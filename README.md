@@ -28,7 +28,7 @@
    PORT = 4000
    CONNECTION_STRING = ""
    EXPRISES_TIME= '24h'
-   ACCESS_TOKEN_SECERT = 'jwttoken123'
+   ACCESS_TOKEN_SECRET = 'jwttoken123'
    REFRESH_TOKEN_SECERT = 'jwtrefreshtoken123'
 ```
 
