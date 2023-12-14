@@ -1,4 +1,3 @@
-// const asyncHandler = require('express-async-handler');
 import asyncHandler from 'express-async-handler';
 import jwt from 'jsonwebtoken';
 import constants from '../constants/httpStatus.js';
