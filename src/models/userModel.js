@@ -51,6 +51,14 @@ const userSchema = new mongoose.Schema({
         type: [String]
     },
 
+    workspace: {
+        type: Object
+    },
+
+    bio: {
+        type: String
+    },
+
     emailToken: {
         type: String
     },
