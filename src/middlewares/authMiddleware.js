@@ -57,7 +57,7 @@ const verifyAccessToken = asyncHandler(async (req, res, next) => {
 
         jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
             if (err) {
-                console.log(err + 'ccc GI V');
+                console.log(err);
                 if (err instanceof TokenExpiredError) {
                     res.status(constants.UNAUTHORIZED);
                     throw new Error('Token expired');
