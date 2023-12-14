@@ -3,6 +3,7 @@ import asyncHandler from 'express-async-handler';
 import bcrypt from 'bcrypt';
 import User from '../models/userModel.js';
 import constants from '../constants/httpStatus.js';
+import e from 'express';
 
 const getUser = asyncHandler(async (req, res) => {
     try {
@@ -54,24 +55,21 @@ const createUser = asyncHandler(async (req, res) => {
 
 const updateUser = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { avatar, firstName, lastName, userName, mail } = JSON.parse(
-        req.body.info
-    );
+    const { firstName, lastName, userName, avatar, bio } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
         return res.status(constants.NOT_FOUND).json(`No user with id: ${id}`);
     }
-
     const findUserId = await User.findById(id);
     const newUpdate = { ...findUserId.update, profile: new Date() };
 
     const user = new User({
         _id: id,
-        avatar: req.file ? req.file.path : avatar,
+        avatar,
         firstName,
         lastName,
         userName,
-        mail: mail,
+        bio,
         update: newUpdate
     });
 
@@ -79,8 +77,10 @@ const updateUser = asyncHandler(async (req, res) => {
         const updatedUser = await User.findByIdAndUpdate(id, user, {
             new: true
         });
+
         return res.status(constants.OK).json(updatedUser);
     } catch (error) {
+        console.log(error);
         res.status(constants.BAD_REQUEST).json({ message: error.message });
     }
 });
