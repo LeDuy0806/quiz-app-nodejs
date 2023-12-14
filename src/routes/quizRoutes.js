@@ -12,7 +12,8 @@ import {
     updateQuiz,
     deleteQuiz,
     likeQuiz,
-    commentQuiz
+    commentQuiz,
+    getQuizzesDiscoverPage
 } from '../controllers/quizController.js';
 
 import {
@@ -35,6 +36,7 @@ quizRouter.use(verifyAccessToken);
 quizRouter.get('/', getQuizzes);
 quizRouter.get('/public', getQuizzesPublics);
 quizRouter.get('/search', getQuizzesBySearch);
+quizRouter.get('/discover', getQuizzesDiscoverPage);
 quizRouter.get('/:id', verifyPrivateQuiz, getQuiz);
 quizRouter.get('/teacher/:teacherId', getTeacherQuizzes);
 

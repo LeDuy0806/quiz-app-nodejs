@@ -2,12 +2,12 @@ import mongoose from 'mongoose';
 
 const questionSchema = new mongoose.Schema(
     {
-        name: {
+        content: {
             type: String
         },
 
-        field: {
-            type: String
+        tags: {
+            type: [String]
         },
 
         creator: { type: mongoose.SchemaTypes.ObjectId, ref: 'User' },
@@ -26,7 +26,8 @@ const questionSchema = new mongoose.Schema(
 
         optionQuestion: {
             type: String,
-            required: true
+            required: true,
+            enum: ['Single', 'Multiple']
         },
 
         pointType: {
