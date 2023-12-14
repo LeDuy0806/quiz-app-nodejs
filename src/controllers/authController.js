@@ -38,7 +38,7 @@ const authorizeInfoUser = async (user) => {
             userName: user.userName,
             userType: user.userType,
             mail: user.mail,
-            id: user.id
+            _id: user.id
         }
     });
     const refreshToken = await generateRefreshToken({
@@ -46,7 +46,7 @@ const authorizeInfoUser = async (user) => {
             userName: user.userName,
             userType: user.userType,
             mail: user.mail,
-            id: user.id
+            _id: user.id
         }
     });
 

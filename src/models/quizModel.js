@@ -20,6 +20,10 @@ const quizSchema = new mongoose.Schema(
 
         tags: [String],
 
+        numberOfQuestions: {
+            type: Number
+        },
+
         pointsPerQuestion: {
             type: Number,
             min: 1

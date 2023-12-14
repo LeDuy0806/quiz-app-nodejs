@@ -3,15 +3,17 @@ import asyncHandler from 'express-async-handler';
 import constants from '../constants/httpStatus.js';
 import Quiz from '../models/quizModel.js';
 import Question from '../models/questionModel.js';
+import Category from '../models/categoryModel.js';
+import Grade from '../models/gradeModel.js';
 import User from '../models/userModel.js';
-import { findQuizByCreator } from '../services/quiz.services.js';
+import { findQuizByCreator, findQuizById } from '../services/quiz.services.js';
 
 //desc   Get quiz with id
 //route  GET /api/quiz/:id
 //access Authenticated user
 const getQuiz = asyncHandler(async (req, res) => {
     try {
-        const quiz = await Quiz.findById(req.params.id);
+        const quiz = await findQuizById(req.params.id);
         if (quiz === null) {
             return res
                 .status(constants.NOT_FOUND)
@@ -20,6 +22,97 @@ const getQuiz = asyncHandler(async (req, res) => {
         res.status(constants.OK).json(quiz);
     } catch (error) {
         res.status(constants.SERVER_ERROR);
+        throw new Error(error);
+    }
+});
+
+//desc   Get quizzes for discover page
+//route  GET /api/quiz/discover
+//access Authenticated user
+const getQuizzesDiscoverPage = asyncHandler(async (req, res) => {
+    try {
+        const result = await Quiz.aggregate([
+            {
+                $lookup: {
+                    from: 'categories', // Tên của bảng category trong cơ sở dữ liệu
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'category'
+                }
+            },
+            {
+                $addFields: {
+                    category: { $arrayElemAt: ['$category', 0] }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'creator',
+                    foreignField: '_id',
+                    as: 'creator'
+                }
+            },
+            {
+                $addFields: {
+                    creator: { $arrayElemAt: ['$creator', 0] }
+                }
+            },
+            {
+                $group: {
+                    _id: '$category.name',
+                    quizzes: { $push: '$$ROOT' },
+                    quizzesCount: { $sum: 1 }
+                }
+            },
+            {
+                $sort: { quizzesCount: -1 } // Sắp xếp giảm dần theo số lượng bài kiểm tra
+            },
+            {
+                $limit: 3 // Giới hạn kết quả chỉ lấy 5 danh mục đầu tiên
+            },
+            {
+                $project: {
+                    _id: 0,
+                    category_name: '$_id',
+                    // quizzes: 1
+                    quizzes: {
+                        $map: {
+                            input: '$quizzes',
+                            as: 'quiz',
+                            in: {
+                                $mergeObjects: [
+                                    '$$quiz',
+                                    {
+                                        creator: {
+                                            userName: '$$quiz.creator.userName',
+                                            firstName:
+                                                '$$quiz.creator.firstName',
+                                            lastName: '$$quiz.creator.lastName',
+                                            avatar: '$$quiz.creator.avatar',
+                                            userType: '$$quiz.creator.userType'
+                                        },
+                                        category: {
+                                            _id: '$$quiz.category._id',
+                                            name: '$$quiz.category.name'
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        ]);
+
+        const quizzesByCategory = {};
+
+        result.forEach((category) => {
+            quizzesByCategory[category.category_name] = category.quizzes;
+        });
+
+        return res.status(200).json(quizzesByCategory);
+    } catch (error) {
         throw new Error(error);
     }
 });
@@ -61,7 +154,29 @@ const getTeacherQuizzes = asyncHandler(async (req, res) => {
 //access Authenticated user
 const getQuizzesPublics = asyncHandler(async (req, res) => {
     try {
-        const quizzes = await Quiz.find({ isPublic: true });
+        const quizzes = await Quiz.find({ isPublic: true })
+            .limit(10)
+            .populate('questionList')
+            .populate({
+                path: 'creator',
+                select: [
+                    'userName',
+                    'firstName',
+                    'lastName',
+                    'avatar',
+                    'userType'
+                ]
+            })
+            .populate({ path: 'grade', select: 'name' })
+            .populate({ path: 'category', select: 'name' });
+
+        quizzes.map((quiz) => {
+            quiz.questionList.map((question, index) => {
+                question.questionIndex = index + 1;
+                return question;
+            });
+            return quiz;
+        });
         res.status(constants.OK).json(quizzes);
     } catch (error) {
         res.status(constants.SERVER_ERROR);
@@ -122,70 +237,97 @@ const createQuiz = asyncHandler(async (req, res) => {
         description,
         backgroundImage,
         isPublic,
-        field,
+        tags,
+        numberOfQuestions,
         pointsPerQuestion,
         likesCount,
-        comments,
-        questionList
+        questionList,
+        category,
+        grade
     } = req.body;
-
-    const existQuizName = await Quiz.findOne({ name, creator: creator._id });
-    if (existQuizName) {
-        res.status(constants.UNPROCESSABLE_ENTITY);
-        throw new Error('Quiz already exists');
-    }
+    // const existQuizName = await Quiz.findOne({ name, creator: creator._id });
+    // if (existQuizName) {
+    //     res.status(constants.UNPROCESSABLE_ENTITY);
+    //     throw new Error('Quiz already exists');
+    // }
 
     if (!name || !description || !pointsPerQuestion || !tags) {
-        res.status(constants.NOT_FOUND);
+        res.status(constants.FORBIDDEN);
         throw new Error('All fields are mandatory!');
     }
-
-    const quiz = new Quiz({
-        name,
-        creator: req.user._id,
-        likesCount,
-        description,
-        backgroundImage,
-        isPublic,
-        field,
-        pointsPerQuestion,
-        likesCount,
-        comments,
-        questionList,
-        dateCreated: new Date().toISOString()
-    });
+    // if (questionList.length === 0) {
+    //     res.status(constants.FORBIDDEN);
+    //     throw new Error('Question List must be not empty!');
+    // }
 
     try {
+        const categoryResult = await Category.findOne({
+            name: category.name
+        }).lean();
+        const gradeResult = await Grade.findOne({ name: grade.name }).lean();
+
+        if (!categoryResult) {
+            res.status(constants.NOT_FOUND);
+            throw new Error('Category not found');
+        }
+        if (!gradeResult) {
+            res.status(constants.NOT_FOUND);
+            throw new Error('Grade not found');
+        }
+
+        const quiz = new Quiz({
+            name,
+            creator: req.user._id,
+            likesCount,
+            description,
+            backgroundImage,
+            isPublic,
+            tags,
+            numberOfQuestions,
+            pointsPerQuestion,
+            likesCount,
+            questionList: [],
+            category: categoryResult._id,
+            grade: gradeResult._id
+            // dateCreated: new Date().toISOString()
+        });
+
+        let SavedQuestionList = questionList.map(async (item) => {
+            const newQuestion = new Question({
+                optionQuestion: item.optionQuestion,
+                // quizId: newQuiz._id,
+                creator: req.user._id,
+                questionIndex: item.questionIndex,
+                tags: item.tags,
+                isPublic: true,
+                questionType: item.questionType,
+                pointType: item.pointType,
+                answerTime: item.answerTime,
+                backgroundImage: item.backgroundImage,
+                content: item.content,
+                answerList: item.answerList,
+                maxCorrectAnswer: item.maxCorrectAnswer,
+                correctAnswerCount: item.correctAnswerCount,
+                answerCorrect: item.answerCorrect
+            });
+            const question = await newQuestion.save();
+            return question;
+        });
+
+        await Promise.all(SavedQuestionList).then((question) => {
+            question.forEach((item) => {
+                quiz.questionList.push(item._id);
+            });
+        });
+
+        if (quiz.numberOfQuestions !== quiz.questionList.length)
+            quiz.numberOfQuestions = quiz.questionList.length;
+
         const newQuiz = await quiz.save();
-        // if (newQuiz.questionList.length) {
-        //   newQuiz.questionList.map((item) => {
-        //     const handleAddQuestion = async () => {
-        //       const newQuestion = new Question({
-        //         _id: item._id,
-        //         creatorId: req.user.id,
-        //         optionQuestion: item.optionQuestion,
-        //         quizId: newQuiz._id,
-        //         questionIndex: item.questionIndex,
-        //         tags: item.tags,
-        //         isPublic: true,
-        //         questionType: item.questionType,
-        //         pointType: item.pointType,
-        //         answerTime: item.answerTime,
-        //         backgroundImage: item.backgroundImage,
-        //         question: item.question,
-        //         answerList: item.answerList,
-        //         maxCorrectAnswer: item.maxCorrectAnswer,
-        //         correctAnswerCount: item.correctAnswerCount,
-        //         answerCorrect: item.answerCorrect,
-        //       });
-        //       await newQuestion.save();
-        //     };
-        //     handleAddQuestion();
-        //   });
-        // }
+
         res.status(constants.CREATE).json(newQuiz);
     } catch (error) {
-        res.status(constants.BAD_REQUEST).json({ message: error.message });
+        throw new Error(error);
     }
 });
 
@@ -243,7 +385,7 @@ const importQuiz = asyncHandler(async (req, res) => {
         const newQuiz = await quiz.save();
         res.status(constants.CREATE).json(newQuiz);
     } catch (error) {
-        res.status(constants.BAD_REQUEST).json({ message: error.message });
+        throw new Error(error);
     }
 });
 
@@ -253,44 +395,126 @@ const importQuiz = asyncHandler(async (req, res) => {
 const updateQuiz = asyncHandler(async (req, res) => {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(404).send(`No quiz with id: ${id}`);
+        return res.status(404).send(`Invalid id: ${id}`);
     }
 
     const {
+        _id,
         name,
         creator,
         description,
         backgroundImage,
         isPublic,
-        field,
+        tags,
+        numberOfQuestions,
         pointsPerQuestion,
         likesCount,
-        comments,
-        questionList
+        questionList,
+        category,
+        grade
     } = req.body;
 
-    const quiz = new Quiz({
-        _id: id,
-        name,
-        creator: creator._id,
-        backgroundImage,
-        description,
-        pointsPerQuestion,
-        isPublic,
-        field,
-        likesCount,
-        comments,
-        questionList,
-        dateCreated: new Date().toISOString()
-    });
-
     try {
+        const QuizWithIdParam = await Quiz.findById(id).lean();
+        if (!QuizWithIdParam) {
+            res.status(404);
+            throw new Error(`No quiz with id: ${id}`);
+        }
+
+        const QuizWithIdFromBody = await Quiz.findById(_id).lean();
+        if (!QuizWithIdFromBody) {
+            res.status(404);
+            throw new Error(`No quiz with id: ${_id}`);
+        }
+
+        if (!name || !description || !pointsPerQuestion || !tags) {
+            res.status(constants.FORBIDDEN);
+            throw new Error('All fields are mandatory!');
+        }
+        if (questionList.length === 0) {
+            res.status(constants.FORBIDDEN);
+            throw new Error('Question List must be not empty!');
+        }
+
+        const categoryResult = await Category.findOne({
+            name: category.name
+        }).lean();
+        const gradeResult = await Grade.findOne({ name: grade.name }).lean();
+
+        if (!categoryResult) {
+            res.status(constants.NOT_FOUND);
+            throw new Error('Category not found');
+        }
+        if (!gradeResult) {
+            res.status(constants.NOT_FOUND);
+            throw new Error('Grade not found');
+        }
+
+        const quiz = new Quiz({
+            name,
+            creator: creator._id,
+            likesCount,
+            description,
+            backgroundImage,
+            isPublic,
+            tags,
+            numberOfQuestions,
+            pointsPerQuestion,
+            likesCount,
+            questionList: [],
+            category: categoryResult._id,
+            grade: gradeResult._id
+        });
+
+        let SavedQuestionList = questionList.map(async (item) => {
+            if (
+                item._id !== undefined &&
+                item._id !== null &&
+                item._id !== ''
+            ) {
+                const question = await Question.findByIdAndUpdate(
+                    item._id,
+                    item
+                );
+                return question;
+            } else {
+                const newQuestion = new Question({
+                    optionQuestion: item.optionQuestion,
+                    creator: creator._id,
+                    questionIndex: item.questionIndex,
+                    tags: item.tags,
+                    isPublic: true,
+                    questionType: item.questionType,
+                    pointType: item.pointType,
+                    answerTime: item.answerTime,
+                    backgroundImage: item.backgroundImage,
+                    content: item.content,
+                    answerList: item.answerList,
+                    maxCorrectAnswer: item.maxCorrectAnswer,
+                    correctAnswerCount: item.correctAnswerCount,
+                    answerCorrect: item.answerCorrect
+                });
+
+                const question = await newQuestion.save();
+                return question;
+            }
+        });
+
+        await Promise.all(SavedQuestionList).then((question) => {
+            question.forEach((item) => {
+                quiz.questionList.push(item._id);
+            });
+        });
+        quiz._id = id;
+        if (quiz.numberOfQuestions !== quiz.questionList.length)
+            quiz.numberOfQuestions = quiz.questionList.length;
+
         const updatedQuiz = await Quiz.findByIdAndUpdate(id, quiz, {
             new: true
         });
-        res.json(updatedQuiz);
+        res.status(constants.OK).json(updatedQuiz);
     } catch (error) {
-        res.status(constants.BAD_REQUEST).json({ message: error.message });
+        throw new Error(error);
     }
 });
 
@@ -372,6 +596,7 @@ const commentQuiz = asyncHandler(async (req, res) => {
 export {
     getQuiz,
     getQuizzes,
+    getQuizzesDiscoverPage,
     getTeacherQuizzes,
     getQuizzesPublics,
     getQuizzesBySearch,
