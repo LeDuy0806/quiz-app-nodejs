@@ -13,18 +13,22 @@ import { wrapRequestHandler as asyncHandler } from '../utils/asyncHandler.utils.
 //route  GET /api/quiz/:id
 //access Authenticated user
 const getQuiz = asyncHandler(async (req, res) => {
-    try {
-        const quiz = await findQuizById(req.params.id);
-        if (quiz === null) {
-            return res
-                .status(constants.NOT_FOUND)
-                .json({ message: 'Quiz not found' });
-        }
-        res.status(constants.OK).json(quiz);
-    } catch (error) {
-        res.status(constants.SERVER_ERROR);
-        throw new Error(error);
+    const { id } = req.params;
+
+    const quiz = await findQuizById(id);
+    if (quiz === null) {
+        return res
+            .status(constants.NOT_FOUND)
+            .json({ message: 'Quiz not found' });
     }
+
+    if (quiz.isDraft) {
+        return res.status(constants.BAD_REQUEST).json({
+            message: 'Quiz is draft'
+        });
+    }
+
+    res.status(constants.OK).json(quiz);
 });
 
 //desc   Get quizzes for discover page
@@ -267,27 +271,27 @@ export const getDraftQuizById = asyncHandler(async (req, res) => {
     }
 
     if (!quiz.isDraft) {
-        res.status(constants.FORBIDDEN);
+        res.status(constants.BAD_REQUEST);
         throw new Error('Quiz is not draft');
     }
 
-    if (!quiz.category) {
-        quiz.category = {
-            _id: '',
-            name: null
-        };
-    }
+    // if (!quiz.category) {
+    //     quiz.category = {
+    //         _id: '',
+    //         name: null
+    //     };
+    // }
 
-    if (!quiz.grade) {
-        quiz.grade = {
-            _id: '',
-            name: null
-        };
-    }
+    // if (!quiz.grade) {
+    //     quiz.grade = {
+    //         _id: '',
+    //         name: null
+    //     };
+    // }
 
-    if (!quiz.importFrom) {
-        quiz.importFrom = '';
-    }
+    // if (!quiz.importFrom) {
+    //     quiz.importFrom = '';
+    // }
 
     return res.status(constants.OK).json(quiz);
 });

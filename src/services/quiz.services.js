@@ -8,7 +8,8 @@ const findQuizById = async (quizId) => {
             select: ['userName', 'firstName', 'lastName', 'avatar', 'userType']
         })
         .populate({ path: 'grade', select: 'name' })
-        .populate({ path: 'category', select: 'name' });
+        .populate({ path: 'category', select: 'name' })
+        .lean();
 
     quiz.questionList = quiz?.questionList.map((question, index) => {
         question.questionIndex = index + 1;
