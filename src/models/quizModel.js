@@ -66,8 +66,6 @@ quizSchema.pre('save', function (next) {
 });
 
 quizSchema.pre('findOne', function (next) {
-    console.log('chay vo day roi ne');
-
     this.populate({
         path: 'creator',
         select: ['userName', 'firstName', 'lastName', 'avatar', 'userType']
@@ -87,6 +85,8 @@ quizSchema.pre('findOne', function (next) {
             select: ['userName', 'firstName', 'lastName', 'avatar', 'userType']
         });
     }
+
+    // this.isDraft = this.questionList.length === 0;
 
     next();
 });
