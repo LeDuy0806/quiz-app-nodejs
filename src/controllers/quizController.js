@@ -215,47 +215,60 @@ const getQuizzesPublics = asyncHandler(async (req, res) => {
     });
 });
 
-// const getPublicQuizzes = async (req, res) => {
-//   const { page } = req.query;
-//   try {
-//     const LIMIT = 6;
-//     const startIndex = (Number(page) - 1) * LIMIT; // get the starting index of every page
-
-//     const total = await Quiz.find({ isPublic: true }).countDocuments({});
-//     const quizes = await Quiz.find({ isPublic: true })
-//       .sort({ _id: -1 }) // sort from the newest
-//       .limit(LIMIT)
-//       .skip(startIndex); // skip first <startIndex> quizes
-//     // const quizes = await Quiz.find({ isPublic: true })
-//     res.status(200).send({
-//       data: quizes,
-//       currentPage: Number(page),
-//       numberOfPages: Math.ceil(total / LIMIT),
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
-
 //desc   Get all quizzes by search
 //route  GET /api/quiz/search?searchQuery=...&tags=...
 //access Authenticated user
 const getQuizzesBySearch = asyncHandler(async (req, res) => {
     const { searchQuery, tags } = req.query;
 
-    try {
-        //i -> ignore case, like ii, Ii, II
-        const name = new RegExp(searchQuery, 'i');
+    const searchTags = tags.split(',');
+    // const searchTagsRegex = searchTags.map((tag) => {
+    //     return new RegExp(tag, 'i');
+    // });
+    const searchTagsRegex = searchTags
+        .map((tag) => tag.toLowerCase())
+        .join('|');
 
-        const quizzes = await Quiz.find({
-            isPublic: true,
-            $or: [{ name }, { tags: { $in: tags.split(',') } }]
-        });
+    // return res
+    //     .status(constants.OK)
+    //     .json({ searchQuery, searchTags, searchTagsRegex });
 
-        res.status(constants.OK).json(quizzes);
-    } catch (error) {
-        res.status(constants.SERVER_ERROR).json({ message: error.message });
-    }
+    //i -> ignore case, like ii, Ii, II
+    const name = new RegExp(searchQuery, 'i');
+
+    const quizzes = await Quiz.find({
+        isPublic: true,
+        $or: [
+            { name },
+            {
+                tags: {
+                    $in: searchTags,
+                    $options: 'i',
+                    $regex: searchTagsRegex,
+                    $size: 1
+                }
+            }
+        ]
+    });
+    //     .populate('questionList')
+    //     .populate({
+    //         path: 'creator',
+    //         select: ['userName', 'firstName', 'lastName', 'avatar', 'userType']
+    //     })
+    //     .populate({ path: 'grade', select: 'name' })
+    //     .populate({ path: 'category', select: 'name' })
+    //     .lean();
+
+    // quizzes.map((quiz) => {
+    //     quiz.isDraft = false;
+    //     quiz.questionList.map((question, index) => {
+    //         question.questionIndex = index + 1;
+    //         return question;
+    //     });
+    //     return quiz;
+    // });
+
+    res.status(constants.OK).json(quizzes);
 });
 
 //desc   Get draft quizzes with id
