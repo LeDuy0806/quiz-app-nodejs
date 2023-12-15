@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import asyncHandler from 'express-async-handler';
+// import asyncHandler from 'express-async-handler';
 import constants from '../constants/httpStatus.js';
 import Quiz from '../models/quizModel.js';
 import Question from '../models/questionModel.js';
@@ -7,6 +7,7 @@ import Category from '../models/categoryModel.js';
 import Grade from '../models/gradeModel.js';
 import User from '../models/userModel.js';
 import { findQuizByCreator, findQuizById } from '../services/quiz.services.js';
+import { wrapRequestHandler as asyncHandler } from '../utils/asyncHandler.utils.js';
 
 //desc   Get quiz with id
 //route  GET /api/quiz/:id
@@ -30,91 +31,86 @@ const getQuiz = asyncHandler(async (req, res) => {
 //route  GET /api/quiz/discover
 //access Authenticated user
 const getQuizzesDiscoverPage = asyncHandler(async (req, res) => {
-    try {
-        const result = await Quiz.aggregate([
-            {
-                $lookup: {
-                    from: 'categories', // Tên của bảng category trong cơ sở dữ liệu
-                    localField: 'category',
-                    foreignField: '_id',
-                    as: 'category'
-                }
-            },
-            {
-                $addFields: {
-                    category: { $arrayElemAt: ['$category', 0] }
-                }
-            },
-            {
-                $lookup: {
-                    from: 'users',
-                    localField: 'creator',
-                    foreignField: '_id',
-                    as: 'creator'
-                }
-            },
-            {
-                $addFields: {
-                    creator: { $arrayElemAt: ['$creator', 0] }
-                }
-            },
-            {
-                $group: {
-                    _id: '$category.name',
-                    quizzes: { $push: '$$ROOT' },
-                    quizzesCount: { $sum: 1 }
-                }
-            },
-            {
-                $sort: { quizzesCount: -1 } // Sắp xếp giảm dần theo số lượng bài kiểm tra
-            },
-            {
-                $limit: 3 // Giới hạn kết quả chỉ lấy 5 danh mục đầu tiên
-            },
-            {
-                $project: {
-                    _id: 0,
-                    category_name: '$_id',
-                    // quizzes: 1
-                    quizzes: {
-                        $map: {
-                            input: '$quizzes',
-                            as: 'quiz',
-                            in: {
-                                $mergeObjects: [
-                                    '$$quiz',
-                                    {
-                                        creator: {
-                                            userName: '$$quiz.creator.userName',
-                                            firstName:
-                                                '$$quiz.creator.firstName',
-                                            lastName: '$$quiz.creator.lastName',
-                                            avatar: '$$quiz.creator.avatar',
-                                            userType: '$$quiz.creator.userType'
-                                        },
-                                        category: {
-                                            _id: '$$quiz.category._id',
-                                            name: '$$quiz.category.name'
-                                        }
+    const result = await Quiz.aggregate([
+        {
+            $lookup: {
+                from: 'categories', // Tên của bảng category trong cơ sở dữ liệu
+                localField: 'category',
+                foreignField: '_id',
+                as: 'category'
+            }
+        },
+        {
+            $addFields: {
+                category: { $arrayElemAt: ['$category', 0] }
+            }
+        },
+        {
+            $lookup: {
+                from: 'users',
+                localField: 'creator',
+                foreignField: '_id',
+                as: 'creator'
+            }
+        },
+        {
+            $addFields: {
+                creator: { $arrayElemAt: ['$creator', 0] }
+            }
+        },
+        {
+            $group: {
+                _id: '$category.name',
+                quizzes: { $push: '$$ROOT' },
+                quizzesCount: { $sum: 1 }
+            }
+        },
+        {
+            $sort: { quizzesCount: -1 } // Sắp xếp giảm dần theo số lượng bài kiểm tra
+        },
+        {
+            $limit: 3 // Giới hạn kết quả chỉ lấy 5 danh mục đầu tiên
+        },
+        {
+            $project: {
+                _id: 0,
+                category_name: '$_id',
+                // quizzes: 1
+                quizzes: {
+                    $map: {
+                        input: '$quizzes',
+                        as: 'quiz',
+                        in: {
+                            $mergeObjects: [
+                                '$$quiz',
+                                {
+                                    creator: {
+                                        userName: '$$quiz.creator.userName',
+                                        firstName: '$$quiz.creator.firstName',
+                                        lastName: '$$quiz.creator.lastName',
+                                        avatar: '$$quiz.creator.avatar',
+                                        userType: '$$quiz.creator.userType'
+                                    },
+                                    category: {
+                                        _id: '$$quiz.category._id',
+                                        name: '$$quiz.category.name'
                                     }
-                                ]
-                            }
+                                }
+                            ]
                         }
                     }
                 }
             }
-        ]);
+        }
+    ]);
 
-        const quizzesByCategory = {};
+    const quizzesByCategory = {};
 
-        result.forEach((category) => {
-            quizzesByCategory[category.category_name] = category.quizzes;
-        });
+    result.forEach((category) => {
+        quizzesByCategory[category.category_name] = category.quizzes;
+    });
 
-        return res.status(200).json(quizzesByCategory);
-    } catch (error) {
-        throw new Error(error);
-    }
+    return res.status(200).json(quizzesByCategory);
 });
 
 //desc   Get all quizzes
@@ -153,35 +149,66 @@ const getTeacherQuizzes = asyncHandler(async (req, res) => {
 //route  GET /api/quiz/public
 //access Authenticated user
 const getQuizzesPublics = asyncHandler(async (req, res) => {
-    try {
-        const quizzes = await Quiz.find({ isPublic: true })
-            .limit(10)
-            .populate('questionList')
-            .populate({
-                path: 'creator',
-                select: [
-                    'userName',
-                    'firstName',
-                    'lastName',
-                    'avatar',
-                    'userType'
-                ]
-            })
-            .populate({ path: 'grade', select: 'name' })
-            .populate({ path: 'category', select: 'name' });
+    const { sectionName, page, pageSize } = req.query;
 
-        quizzes.map((quiz) => {
-            quiz.questionList.map((question, index) => {
-                question.questionIndex = index + 1;
-                return question;
-            });
-            return quiz;
-        });
-        res.status(constants.OK).json(quizzes);
-    } catch (error) {
-        res.status(constants.SERVER_ERROR);
-        throw new Error(error);
+    if (page === 0 || page < 0) {
+        return res
+            .status(constants.FORBIDDEN)
+            .json({ message: 'Page must be greater than 0' });
     }
+
+    let category;
+    if (
+        !sectionName ||
+        sectionName === 'public' ||
+        sectionName === 'all' ||
+        sectionName === ''
+    ) {
+        category = 'public';
+    } else {
+        category = await Category.findOne({
+            name: { $regex: new RegExp(sectionName, 'i') }
+        }).lean();
+    }
+
+    const PAGE = page ? Number(page) : 1; // get the page number
+    const LIMIT = pageSize && Number(pageSize) != 0 ? Number(pageSize) : 10; // limit the number of quizes per page
+    const startIndex = (Number(PAGE) - 1) * LIMIT; // get the starting index of every page
+
+    const findOptions = {
+        isPublic: true
+    };
+    if (category !== 'public') {
+        findOptions.category = category._id;
+    }
+    const total = await Quiz.find(findOptions).countDocuments({});
+
+    const quizes = await Quiz.find(findOptions)
+        .sort({ _id: -1 }) // sort from the newest
+        .limit(LIMIT) // limit the number of quizes per page
+        .skip(startIndex) // skip first <startIndex> quizes
+        .populate('questionList') // populate questionList
+        .populate({
+            path: 'creator',
+            select: ['userName', 'firstName', 'lastName', 'avatar', 'userType']
+        }) // populate creator
+        .populate({ path: 'grade', select: 'name' }) // populate grade
+        .populate({ path: 'category', select: 'name' }); // populate category
+
+    //reset questionIndex of each question in questionList
+    quizes.map((quiz) => {
+        quiz.questionList.map((question, index) => {
+            question.questionIndex = index + 1;
+            return question;
+        });
+        return quiz;
+    });
+    res.status(constants.OK).json({
+        data: quizes,
+        currentPage: Number(PAGE),
+        pageSize: LIMIT,
+        numberOfPages: Math.ceil(total / LIMIT)
+    });
 });
 
 // const getPublicQuizzes = async (req, res) => {
@@ -227,6 +254,66 @@ const getQuizzesBySearch = asyncHandler(async (req, res) => {
     }
 });
 
+//desc   Get draft quizzes with id
+//route  GET /api/quiz/draft/:id
+//access Authenticated user
+export const getDraftQuizById = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    let quiz = await Quiz.findById(id).lean();
+    if (!quiz) {
+        res.status(constants.NOT_FOUND);
+        throw new Error('Quiz not found');
+    }
+
+    if (!quiz.isDraft) {
+        res.status(constants.FORBIDDEN);
+        throw new Error('Quiz is not draft');
+    }
+
+    if (!quiz.category) {
+        quiz.category = {
+            _id: '',
+            name: null
+        };
+    }
+
+    if (!quiz.grade) {
+        quiz.grade = {
+            _id: '',
+            name: null
+        };
+    }
+
+    if (!quiz.importFrom) {
+        quiz.importFrom = '';
+    }
+
+    return res.status(constants.OK).json(quiz);
+});
+
+//desc   Create a draft quiz
+//route  POST /api/quiz/draft
+//access Authenticated user
+export const createDraftQuiz = asyncHandler(async (req, res) => {
+    const { name, description, isPublic } = req.body;
+
+    if (!name) {
+        res.status(constants.FORBIDDEN);
+        throw new Error('Quiz must have a name!');
+    }
+
+    const quiz = new Quiz({
+        name,
+        description,
+        isPublic,
+        creator: req.user._id
+    });
+
+    const newDraftQuiz = await quiz.save();
+
+    res.status(constants.CREATE).json(newDraftQuiz);
+});
 //desc   Create a quiz
 //route  POST /api/quiz
 //access Authenticated user

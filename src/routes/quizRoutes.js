@@ -13,7 +13,9 @@ import {
     deleteQuiz,
     likeQuiz,
     commentQuiz,
-    getQuizzesDiscoverPage
+    getQuizzesDiscoverPage,
+    createDraftQuiz,
+    getDraftQuizById
 } from '../controllers/quizController.js';
 
 import {
@@ -38,9 +40,11 @@ quizRouter.get('/public', getQuizzesPublics);
 quizRouter.get('/search', getQuizzesBySearch);
 quizRouter.get('/discover', getQuizzesDiscoverPage);
 quizRouter.get('/:id', verifyPrivateQuiz, getQuiz);
+quizRouter.get('/draft/:id', getDraftQuizById);
 quizRouter.get('/teacher/:teacherId', getTeacherQuizzes);
 
 quizRouter.post('/', createQuiz);
+quizRouter.post('/draft', createDraftQuiz);
 quizRouter.post('/import', importQuiz);
 quizRouter.post('/:id/commentQuiz', commentQuiz);
 
