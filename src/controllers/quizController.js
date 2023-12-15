@@ -614,27 +614,27 @@ const deleteQuiz = asyncHandler(async (req, res) => {
         return res.status(constants.NOT_FOUND).json(`No quiz with id: ${id}`);
     }
 
-    try {
-        const quiz = await Quiz.findById(id);
-        if (!quiz.sourceCreator) {
-            const handleRemoveQuestion = async () => {
-                quiz.questionList.map((item) => {
-                    const handleDelete = async () => {
-                        await Question.findByIdAndRemove(item._id);
-                    };
-                    handleDelete();
-                });
-            };
-            handleRemoveQuestion();
-        }
-
-        await Quiz.findByIdAndRemove(id);
-        res.status(constants.NOT_FOUND).json({
-            message: 'Quiz deleted succesfully'
-        });
-    } catch (error) {
-        res.status(constants.SERVER_ERROR).json({ message: error.message });
+    const quiz = await Quiz.findById(id);
+    if (!quiz) {
+        return res.status(constants.NOT_FOUND).json(`No quiz with id: ${id}`);
     }
+
+    // if (!quiz.sourceCreator) {
+    //     const handleRemoveQuestion = async () => {
+    //         quiz.questionList.map((item) => {
+    //             const handleDelete = async () => {
+    //                 await Question.findByIdAndRemove(item._id);
+    //             };
+    //             handleDelete();
+    //         });
+    //     };
+    //     handleRemoveQuestion();
+    // }
+
+    await Quiz.findByIdAndRemove(id);
+    res.status(constants.OK).json({
+        message: 'Quiz deleted succesfully'
+    });
 });
 
 const likeQuiz = asyncHandler(async (req, res) => {
