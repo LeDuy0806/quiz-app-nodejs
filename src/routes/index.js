@@ -10,6 +10,7 @@ import leaderBoardRouter from './leaderBoardRoutes.js';
 import playerResultRouter from './playerResultRoutes.js';
 import categoryRouter from './categoryRoutes.js';
 import gradeRouter from './gradeRoutes.js';
+import aiRouter from './aiRoute.js';
 
 route.use('/api/auth', authRouter);
 route.use('/api/user', userRouter);
@@ -20,5 +21,6 @@ route.use('/api/leaderBoard', leaderBoardRouter);
 route.use('/api/playerResult', playerResultRouter);
 route.use('/api/categories', categoryRouter);
 route.use('/api/grades', gradeRouter);
+// route.use('/api/ai', aiRouter);
 
 export default route;
