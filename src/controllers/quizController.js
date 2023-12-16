@@ -515,7 +515,8 @@ const updateQuiz = asyncHandler(async (req, res) => {
         likesCount,
         questionList,
         category,
-        grade
+        grade,
+        isDraft
     } = req.body;
 
     try {
@@ -567,7 +568,8 @@ const updateQuiz = asyncHandler(async (req, res) => {
             likesCount,
             questionList: [],
             category: categoryResult._id,
-            grade: gradeResult._id
+            grade: gradeResult._id,
+            isDraft
         });
 
         let SavedQuestionList = questionList.map(async (item) => {
