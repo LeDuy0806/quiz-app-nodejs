@@ -36,6 +36,7 @@ const getQuiz = asyncHandler(async (req, res) => {
 //access Authenticated user
 const getQuizzesDiscoverPage = asyncHandler(async (req, res) => {
     const result = await Quiz.aggregate([
+        { $match: { isPublic: true, isDraft: false } },
         {
             $lookup: {
                 from: 'categories', // Tên của bảng category trong cơ sở dữ liệu
@@ -180,14 +181,15 @@ const getQuizzesPublics = asyncHandler(async (req, res) => {
     const startIndex = (Number(PAGE) - 1) * LIMIT; // get the starting index of every page
 
     const findOptions = {
-        isPublic: true
+        isPublic: true,
+        isDraft: false
     };
     if (category !== 'public') {
         findOptions.category = category._id;
     }
-    const total = await Quiz.find(findOptions).countDocuments({});
+    const total = await Quiz.find({ ...findOptions }).countDocuments({});
 
-    const quizes = await Quiz.find(findOptions)
+    const quizes = await Quiz.find({ ...findOptions })
         .sort({ _id: -1 }) // sort from the newest
         .limit(LIMIT) // limit the number of quizes per page
         .skip(startIndex) // skip first <startIndex> quizes
@@ -210,52 +212,69 @@ const getQuizzesPublics = asyncHandler(async (req, res) => {
     res.status(constants.OK).json({
         data: quizes,
         currentPage: Number(PAGE),
-        pageSize: LIMIT,
+        pageSize: quizes.length,
         numberOfPages: Math.ceil(total / LIMIT)
     });
 });
-
-// const getPublicQuizzes = async (req, res) => {
-//   const { page } = req.query;
-//   try {
-//     const LIMIT = 6;
-//     const startIndex = (Number(page) - 1) * LIMIT; // get the starting index of every page
-
-//     const total = await Quiz.find({ isPublic: true }).countDocuments({});
-//     const quizes = await Quiz.find({ isPublic: true })
-//       .sort({ _id: -1 }) // sort from the newest
-//       .limit(LIMIT)
-//       .skip(startIndex); // skip first <startIndex> quizes
-//     // const quizes = await Quiz.find({ isPublic: true })
-//     res.status(200).send({
-//       data: quizes,
-//       currentPage: Number(page),
-//       numberOfPages: Math.ceil(total / LIMIT),
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
 
 //desc   Get all quizzes by search
 //route  GET /api/quiz/search?searchQuery=...&tags=...
 //access Authenticated user
 const getQuizzesBySearch = asyncHandler(async (req, res) => {
-    const { searchQuery, tags } = req.query;
+    const { searchName, tags } = req.query;
+    // if (!searchName || !tags) {
+    //     return res.status(constants.BAD_REQUEST).json({
+    //         message: 'Missing search query'
+    //     });
+    // }
 
-    try {
-        //i -> ignore case, like ii, Ii, II
-        const name = new RegExp(searchQuery, 'i');
+    const searchTags = tags ? tags.split(',').map((tag) => tag.trim()) : [];
+    //i -> ignore case, like ii, Ii, II
+    const searchTagsRegex = searchTags.map((tag) => new RegExp(tag, 'i'));
+    const name = searchName ? new RegExp(searchName, 'i') : '';
 
-        const quizzes = await Quiz.find({
-            isPublic: true,
-            $or: [{ name }, { tags: { $in: tags.split(',') } }]
-        });
+    const searchQuery = [];
 
-        res.status(constants.OK).json(quizzes);
-    } catch (error) {
-        res.status(constants.SERVER_ERROR).json({ message: error.message });
+    if (searchName) {
+        searchQuery.push({ name });
     }
+    if (tags) {
+        searchQuery.push({ tags: { $in: searchTagsRegex } });
+    }
+
+    if (!searchName && !tags) {
+        searchQuery.push({ name: '' });
+        searchQuery.push({ tags: { $in: [] } });
+    }
+
+    const quizzes = await Quiz.find({
+        isPublic: true,
+        isDraft: false,
+        // category: {
+        //     $in: ['6549f46694e401eca9b99a08', '6549f62b6e93124e61b94307']
+        // }
+        // $or: [{ name }, { tags: { $in: searchTagsRegex } }]
+        $and: searchQuery
+    })
+        .populate('questionList')
+        .populate({
+            path: 'creator',
+            select: ['userName', 'firstName', 'lastName', 'avatar', 'userType']
+        })
+        .populate({ path: 'category', select: 'name' })
+        .populate({ path: 'grade', select: 'name' })
+        .lean();
+
+    quizzes.map((quiz) => {
+        quiz.isDraft = false;
+        quiz.questionList.map((question, index) => {
+            question.questionIndex = index + 1;
+            return question;
+        });
+        return quiz;
+    });
+
+    res.status(constants.OK).json(quizzes);
 });
 
 //desc   Get draft quizzes with id
@@ -502,7 +521,8 @@ const updateQuiz = asyncHandler(async (req, res) => {
         likesCount,
         questionList,
         category,
-        grade
+        grade,
+        isDraft
     } = req.body;
 
     try {
@@ -554,7 +574,8 @@ const updateQuiz = asyncHandler(async (req, res) => {
             likesCount,
             questionList: [],
             category: categoryResult._id,
-            grade: gradeResult._id
+            grade: gradeResult._id,
+            isDraft
         });
 
         let SavedQuestionList = questionList.map(async (item) => {
@@ -599,6 +620,8 @@ const updateQuiz = asyncHandler(async (req, res) => {
         quiz._id = id;
         if (quiz.numberOfQuestions !== quiz.questionList.length)
             quiz.numberOfQuestions = quiz.questionList.length;
+
+        quiz.isDraft = quiz.questionList.length === 0 ? true : false;
 
         const updatedQuiz = await Quiz.findByIdAndUpdate(id, quiz, {
             new: true

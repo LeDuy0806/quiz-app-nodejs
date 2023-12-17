@@ -10,7 +10,8 @@ const quizSchema = new mongoose.Schema(
 
         backgroundImage: {
             type: String,
-            default: ''
+            default:
+                'https://res.cloudinary.com/dfoiuc0jw/image/upload/v1702735161/quiz-app/background/DefaultQuizBackgrounDark_xgrfvk.webp'
         },
         isDraft: { type: Boolean, required: true, default: true },
 
@@ -66,8 +67,6 @@ quizSchema.pre('save', function (next) {
 });
 
 quizSchema.pre('findOne', function (next) {
-    console.log('chay vo day roi ne');
-
     this.populate({
         path: 'creator',
         select: ['userName', 'firstName', 'lastName', 'avatar', 'userType']
@@ -87,6 +86,8 @@ quizSchema.pre('findOne', function (next) {
             select: ['userName', 'firstName', 'lastName', 'avatar', 'userType']
         });
     }
+
+    // this.isDraft = this.questionList.length === 0;
 
     next();
 });
