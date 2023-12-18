@@ -46,8 +46,6 @@ const checkUserName = asyncHandler(async (req, res) => {
 const verifyAccessToken = asyncHandler(async (req, res, next) => {
     let token;
     let authHeader = req.headers.Authorization || req.headers.authorization;
-    // console.log(authHeader);
-
     if (authHeader && authHeader.startsWith('Bearer')) {
         token = authHeader.split(' ')[1];
         if (!token || token === 'null' || token === 'undefined') {
@@ -121,7 +119,7 @@ const verifyUserAuthorization = asyncHandler(async (req, res, next) => {
 
             const user = decoded.user;
             //check admin role
-            if (user.id === req.params.id || user.userType === 'Admin') {
+            if (user._id === req.params.id || user.userType === 'Admin') {
                 // req.user.checkMySelf = true;
                 next();
             } else {

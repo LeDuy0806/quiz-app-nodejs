@@ -10,7 +10,7 @@ import leaderBoardRouter from './leaderBoardRoutes.js';
 import playerResultRouter from './playerResultRoutes.js';
 import categoryRouter from './categoryRoutes.js';
 import gradeRouter from './gradeRoutes.js';
-import aiRouter from './aiRoute.js';
+// import aiRouter from './aiRoute.js';
 
 route.use('/api/auth', authRouter);
 route.use('/api/user', userRouter);
