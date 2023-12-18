@@ -36,13 +36,13 @@ const findQuizByCreator = async (creatorId) => {
             .populate({ path: 'grade', select: 'name' })
             .populate({ path: 'category', select: 'name' });
 
-        quizzes.map((quiz) => {
-            quiz.questionList.map((question, index) => {
-                question.questionIndex = index + 1;
-                return question;
-            });
-            return quiz;
-        });
+        // quizzes.map((quiz) => {
+        //     quiz.questionList.map((question, index) => {
+        //         question.questionIndex = index + 1;
+        //         return question;
+        //     });
+        //     return quiz;
+        // });
 
         return quizzes;
     } catch (error) {
