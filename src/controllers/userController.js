@@ -3,7 +3,6 @@ import asyncHandler from 'express-async-handler';
 import bcrypt from 'bcrypt';
 import User from '../models/userModel.js';
 import constants from '../constants/httpStatus.js';
-import e from 'express';
 
 const getUser = asyncHandler(async (req, res) => {
     try {

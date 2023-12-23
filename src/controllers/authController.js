@@ -61,6 +61,27 @@ const authorizeInfoUser = async (user) => {
     return { accessToken, refreshToken };
 };
 
+export const authorizeInfoUserTest = async (user) => {
+    console.log(user.userName, user.mail, user.userType, user._id);
+    const accessToken = await generateAccessToken({
+        user: {
+            userName: user.userName,
+            userType: user.userType,
+            mail: user.mail,
+            _id: user.id
+        }
+    });
+    const refreshToken = await generateRefreshToken({
+        user: {
+            userName: user.userName,
+            userType: user.userType,
+            mail: user.mail,
+            _id: user.id
+        }
+    });
+    return { accessToken, refreshToken };
+};
+
 const loginUser = asyncHandler(async (req, res) => {
     const { mail, password } = req.body;
     const user = await User.findOne({ mail });
