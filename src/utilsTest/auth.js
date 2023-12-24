@@ -1,4 +1,3 @@
-
 const EmailFormat = (value) => {
     var email =
         /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -53,95 +52,67 @@ const RequireShort = (value) => {
     }
 };
 
+const signUpEmailNotFormat = {
+    mail: 'tranthanh18092003@gmail',
+    userNameNotStandard: 'Anh',
+    userNameStandard: 'TranThanh',
+    passwordWeak: 'anh',
+    passwordMedium: 'anhquoc1',
+    passwordValid: 'QuocAnh-1809'
+};
 
-const signUpValid = {
+const signUpEmailFormat = {
     mail: 'tranthanh18092003@gmail.com',
-    userName: 'TranThanh',
-    firstName: 'Tran',
-    lastName: 'Thanh',
-    avatar: '',
-    userType: 'Teacher',
-    point: 0,
-    follows: [],
-    friends: [],
-    password: 'QuocAnh-1809',
-    workspace: { logo: '', name: { en: '', vn: '' } },
-    bio: '',
-    emailToken: '',
-    isVerified: true,
-    update: {
-        profile: '',
-        mail: '',
-        password: ''
-    }
+    userNameNotStandard: 'Anh',
+    userNameStandard: 'TranThanh',
+    passwordWeak: 'anh',
+    passwordMedium: 'anhquoc1',
+    passwordValid: 'QuocAnh-1809'
 };
 
 const signUpEmailExist = {
     mail: 'thuhien18092003@gmail.com',
     userName: 'QuocAnh123',
     firstName: 'Quoc',
-    lastName: 'Anh',
-    avatar: '',
-    userType: 'Teacher',
-    point: 0,
-    follows: [],
-    friends: [],
-    workspace: { logo: '', name: { en: '', vn: '' } },
-    bio: '',
-    password: 'anhquoc123',
-    emailToken: '',
-    isVerified: true,
-    update: {
-        profile: '',
-        mail: '',
-        password: ''
-    }
+    lastName: 'Anh'
 };
 
 const signUpUserNameExist = {
     mail: 'tranthanh18092003@gmail.com',
     userName: 'ThuHien123',
     firstName: 'Thu',
-    lastName: 'Hien',
-    avatar: '',
-    userType: 'Teacher',
-    point: 0,
-    follows: [],
-    friends: [],
-    workspace: { logo: '', name: { en: '', vn: '' } },
-    bio: '',
-    password: 'anhquoc123',
-    emailToken: '',
-    isVerified: true,
-    update: {
-        profile: '',
-        mail: '',
-        password: ''
-    }
+    lastName: 'Hien'
 };
 
-const signInValid = {
+const signInEmailValid = {
     mail: 'anhquoc18092003@gmail.com',
-    password: 'QuocAnh-1809'
+    passwordWeak: 'anh',
+    passwordMedium: 'anhquoc1',
+    passwordValid: 'QuocAnh-1809'
 };
 
 const signInEmailNotExist = {
     mail: 'tranthanh18092003@gmail.com',
-    password: 'QuocAnh-1809'
+    passwordWeak: 'anh',
+    passwordMedium: 'anhquoc1',
+    passwordStrong: 'QuocAnh-1809'
 };
 
-const signInPassWordInvalid = {
-    mail: 'anhquoc18092003@gmail.com',
-    password: 'anhquoc1809'
+const signInEmailNotStandard = {
+    mail: 'anhquoc18092003@gmail',
+    passwordWeak: 'anh',
+    passwordMedium: 'anhquoc1',
+    passwordStrong: 'QuocAnh-1809'
 };
 
 export {
-    signUpValid,
+    signUpEmailFormat,
+    signUpEmailNotFormat,
     signUpEmailExist,
     signUpUserNameExist,
-    signInValid,
+    signInEmailValid,
     signInEmailNotExist,
-    signInPassWordInvalid,
+    signInEmailNotStandard,
     EmailFormat,
     RequirePassword,
     RequireLong,
