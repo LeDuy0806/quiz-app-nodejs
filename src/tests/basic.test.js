@@ -1,29 +1,5 @@
 import { sum, deleteUserById, findUserById } from '../utilsTest/basic';
 
-// let userdata = [];
-// console.log(userdata, 'before all functions ')
-
-// beforeAll(() => {
-
-//     userdata = ['Clement', 'Sarah']
-//     console.log("runs before all tests", userdata)
-// })
-
-// beforeEach(() => {
-//     console.log("running before each test")
-
-// })
-
-// afterEach(() => {
-//     console.log("running after each test")
-
-// })
-
-// afterAll(() => {
-//     userdata = [];
-//     console.log("running after all tests have run", userdata)
-// })
-
 describe('Number Operations', () => {
     test('1 plus 1 should be equal to 2', () => {
         let a = 1;
