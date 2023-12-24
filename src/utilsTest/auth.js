@@ -1,3 +1,4 @@
+
 const EmailFormat = (value) => {
     var email =
         /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -51,6 +52,7 @@ const RequireShort = (value) => {
         }
     }
 };
+
 
 const signUpValid = {
     mail: 'tranthanh18092003@gmail.com',

@@ -8,7 +8,8 @@ import {
     signInPassWordInvalid,
     EmailFormat,
     RequirePassword,
-    RequireLong
+    RequireLong,
+    signInPassWordInvalid
 } from '../utilsTest/auth';
 import bcrypt from 'bcrypt';
 import { authorizeInfoUserTest } from '../controllers/authController';
@@ -32,6 +33,7 @@ describe('Auth Functionality', () => {
     });
 
     describe('user SignUp', () => {
+
         describe('given the mail is format and the password is strong and userName is standard length', () => {
             test('should return the true and strong and strong', async () => {
                 const user = {
@@ -225,6 +227,20 @@ describe('Auth Functionality', () => {
         //         expect([emailExits, userNameExist]).toEqual([null, null]);
         //     });
         // });
+
+        describe('given the SignUp information are valid', () => {
+            test('should return the user payload', async () => {
+                const { mail, userName } = signUpValid;
+                const users = db.collection('users');
+                const emailExits = await users.findOne({
+                    mail
+                });
+                const userNameExist = await users.findOne({
+                    userName
+                });
+                expect([emailExits, userNameExist]).toEqual([null, null]);
+            });
+        });
 
         describe('given the email already exist', () => {
             test('should return a 422', async () => {
