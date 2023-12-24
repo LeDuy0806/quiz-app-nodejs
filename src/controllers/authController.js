@@ -62,7 +62,6 @@ const authorizeInfoUser = async (user) => {
 };
 
 export const authorizeInfoUserTest = async (user) => {
-    console.log(user.userName, user.mail, user.userType, user._id);
     const accessToken = await generateAccessToken({
         user: {
             userName: user.userName,
