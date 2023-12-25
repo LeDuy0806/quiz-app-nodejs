@@ -15,6 +15,12 @@ import { wrapRequestHandler as asyncHandler } from '../utils/asyncHandler.utils.
 const getQuiz = asyncHandler(async (req, res) => {
     const { id } = req.params;
 
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(constants.BAD_REQUEST).json({
+            message: 'Invalid id'
+        });
+    }
+
     const quiz = await findQuizById(id);
     if (quiz === null) {
         return res
@@ -136,18 +142,28 @@ const getQuizzes = asyncHandler(async (req, res) => {
 //access Authenticated user
 const getTeacherQuizzes = asyncHandler(async (req, res) => {
     const { teacherId } = req.params;
-    try {
-        const user = await User.findById(teacherId);
-        if (!user) {
-            res.status(constants.NOT_FOUND);
-            throw new Error('User not found');
-        }
-        const quizzes = await findQuizByCreator(teacherId);
 
-        res.status(constants.OK).json(quizzes);
-    } catch (error) {
-        res.status(constants.SERVER_ERROR).json({ message: error.message });
+    if (!mongoose.Types.ObjectId.isValid(teacherId)) {
+        return res.status(constants.BAD_REQUEST).json({
+            message: 'Invalid id'
+        });
     }
+
+    const user = await User.findById(teacherId);
+    if (!user) {
+        return res.status(constants.NOT_FOUND).json({
+            message: 'User not found'
+        });
+    }
+    const quizzes = await findQuizByCreator(teacherId);
+
+    if (quizzes.length === 0) {
+        res.status(constants.OK).json({
+            message: 'No quizzes found'
+        });
+    }
+
+    res.status(constants.OK).json(quizzes);
 });
 
 //desc   Get all public quizzes
