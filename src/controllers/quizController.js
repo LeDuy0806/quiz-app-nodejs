@@ -377,84 +377,101 @@ const createQuiz = asyncHandler(async (req, res) => {
     //     throw new Error('Quiz already exists');
     // }
 
-    if (!name || !description || !pointsPerQuestion || !tags) {
-        res.status(constants.FORBIDDEN);
-        throw new Error('All fields are mandatory!');
+    if (!name) {
+        return res.status(constants.BAD_REQUEST).json({
+            message: 'Name is required'
+        });
     }
-    // if (questionList.length === 0) {
-    //     res.status(constants.FORBIDDEN);
-    //     throw new Error('Question List must be not empty!');
-    // }
 
-    try {
-        const categoryResult = await Category.findOne({
-            name: category.name
-        }).lean();
-        const gradeResult = await Grade.findOne({ name: grade.name }).lean();
+    if (!pointsPerQuestion) {
+        return res.status(constants.BAD_REQUEST).json({
+            message: 'Points per question is required'
+        });
+    }
 
-        if (!categoryResult) {
-            res.status(constants.NOT_FOUND);
-            throw new Error('Category not found');
-        }
-        if (!gradeResult) {
-            res.status(constants.NOT_FOUND);
-            throw new Error('Grade not found');
-        }
+    if (questionList.length === 0) {
+        // res.status(constants.BAD_REQUEST);
+        // throw new Error('Question List must be not empty!');
 
-        const quiz = new Quiz({
-            name,
+        return res.status(constants.BAD_REQUEST).json({
+            message: 'Question List must be not empty!'
+        });
+    }
+
+    const categoryResult = await Category.findOne({
+        name: category.name
+    }).lean();
+
+    const gradeResult = await Grade.findOne({ name: grade.name }).lean();
+
+    if (!categoryResult) {
+        // res.status(constants.NOT_FOUND);
+        // throw new Error('Category not found');
+
+        return res.status(constants.NOT_FOUND).json({
+            message: 'Category not found'
+        });
+    }
+    if (!gradeResult) {
+        // res.status(constants.NOT_FOUND);
+        // throw new Error('Grade not found');
+
+        return res.status(constants.NOT_FOUND).json({
+            message: 'Grade not found'
+        });
+    }
+
+    const quiz = new Quiz({
+        name,
+        creator: req.user._id,
+        likesCount,
+        description,
+        backgroundImage,
+        isPublic,
+        tags,
+        numberOfQuestions,
+        pointsPerQuestion,
+        likesCount,
+        questionList: [],
+        category: categoryResult._id,
+        grade: gradeResult._id
+        // dateCreated: new Date().toISOString()
+    });
+
+    let SavedQuestionList = questionList.map(async (item) => {
+        const newQuestion = new Question({
+            optionQuestion: item.optionQuestion,
+            // quizId: newQuiz._id,
             creator: req.user._id,
-            likesCount,
-            description,
-            backgroundImage,
-            isPublic,
-            tags,
-            numberOfQuestions,
-            pointsPerQuestion,
-            likesCount,
-            questionList: [],
-            category: categoryResult._id,
-            grade: gradeResult._id
-            // dateCreated: new Date().toISOString()
+            questionIndex: item.questionIndex,
+            tags: item.tags,
+            isPublic: true,
+            questionType: item.questionType,
+            pointType: item.pointType,
+            answerTime: item.answerTime,
+            backgroundImage: item.backgroundImage,
+            content: item.content,
+            answerList: item.answerList,
+            maxCorrectAnswer: item.maxCorrectAnswer,
+            correctAnswerCount: item.correctAnswerCount,
+            answerCorrect: item.answerCorrect
         });
+        const question = await newQuestion.save();
+        return question;
+    });
 
-        let SavedQuestionList = questionList.map(async (item) => {
-            const newQuestion = new Question({
-                optionQuestion: item.optionQuestion,
-                // quizId: newQuiz._id,
-                creator: req.user._id,
-                questionIndex: item.questionIndex,
-                tags: item.tags,
-                isPublic: true,
-                questionType: item.questionType,
-                pointType: item.pointType,
-                answerTime: item.answerTime,
-                backgroundImage: item.backgroundImage,
-                content: item.content,
-                answerList: item.answerList,
-                maxCorrectAnswer: item.maxCorrectAnswer,
-                correctAnswerCount: item.correctAnswerCount,
-                answerCorrect: item.answerCorrect
-            });
-            const question = await newQuestion.save();
-            return question;
+    await Promise.all(SavedQuestionList).then((question) => {
+        question.forEach((item) => {
+            quiz.questionList.push(item._id);
         });
+    });
 
-        await Promise.all(SavedQuestionList).then((question) => {
-            question.forEach((item) => {
-                quiz.questionList.push(item._id);
-            });
-        });
+    if (quiz.numberOfQuestions !== quiz.questionList.length)
+        quiz.numberOfQuestions = quiz.questionList.length;
 
-        if (quiz.numberOfQuestions !== quiz.questionList.length)
-            quiz.numberOfQuestions = quiz.questionList.length;
+    const newQuiz = await quiz.save();
 
-        const newQuiz = await quiz.save();
-
-        res.status(constants.CREATE).json(newQuiz);
-    } catch (error) {
-        throw new Error(error);
-    }
+    res.status(constants.CREATE).json(newQuiz);
 });
 
 //desc   Import a quiz
