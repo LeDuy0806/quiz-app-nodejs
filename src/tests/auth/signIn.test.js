@@ -28,7 +28,7 @@ describe('User SignIn', () => {
         await connection.close();
     });
 
-    describe('given the valid mail and strong password (passWordValid) ', () => {
+    describe('given the valid mail and strong password (passWordValid)', () => {
         test('should return the true and strong', async () => {
             let AccessTokenAndRefreshToken = null;
             const { mail, passwordValid } = signInEmailValid;
@@ -47,10 +47,8 @@ describe('User SignIn', () => {
                 AccessTokenAndRefreshToken = await authorizeInfoUserTest(user);
             }
 
-            expect([checkPass, RequirePassword(passwordValid)]).toEqual([
-                true,
-                'strong'
-            ]);
+            expect(checkPass).toEqual(true);
+            expect(RequirePassword(passwordValid)).toEqual('strong');
             expect(AccessTokenAndRefreshToken).not.toEqual(null);
         });
     });
@@ -68,10 +66,9 @@ describe('User SignIn', () => {
                 passwordMedium + '',
                 user.password
             );
-            expect([checkPass, RequirePassword(passwordMedium)]).toEqual([
-                false,
-                'medium'
-            ]);
+
+            expect(checkPass).toEqual(false);
+            expect(RequirePassword(passwordMedium)).toEqual('medium');
         });
     });
 
@@ -88,10 +85,9 @@ describe('User SignIn', () => {
                 passwordWeak + '',
                 user.password
             );
-            expect([checkPass, RequirePassword(passwordWeak)]).toEqual([
-                false,
-                'weak'
-            ]);
+
+            expect(checkPass).toEqual(false);
+            expect(RequirePassword(passwordWeak)).toEqual('weak');
         });
     });
 
@@ -103,10 +99,9 @@ describe('User SignIn', () => {
             const user = await users.findOne({
                 mail
             });
-            expect([user, RequirePassword(passwordWeak)]).toEqual([
-                null,
-                'weak'
-            ]);
+
+            expect(user).toBeNull();
+            expect(RequirePassword(passwordWeak)).toEqual('weak');
         });
     });
 
@@ -118,10 +113,9 @@ describe('User SignIn', () => {
             const user = await users.findOne({
                 mail
             });
-            expect([user, RequirePassword(passwordMedium)]).toEqual([
-                null,
-                'medium'
-            ]);
+
+            expect(user).toBeNull();
+            expect(RequirePassword(passwordMedium)).toEqual('medium');
         });
     });
 
@@ -133,43 +127,51 @@ describe('User SignIn', () => {
             const user = await users.findOne({
                 mail
             });
-            expect([user, RequirePassword(passwordStrong)]).toEqual([
-                null,
-                'strong'
-            ]);
+
+            expect(user).toBeNull();
+            expect(RequirePassword(passwordStrong)).toEqual('strong');
         });
     });
 
     describe('given the email not standard and weak password', () => {
         test('should return a false and weak', async () => {
             const { mail, passwordWeak } = signInEmailNotStandard;
+            const users = db.collection('users');
+            const user = await users.findOne({
+                mail
+            });
 
-            expect([EmailFormat(mail), RequirePassword(passwordWeak)]).toEqual([
-                false,
-                'weak'
-            ]);
+            expect(EmailFormat(mail)).toEqual(false);
+            expect(RequirePassword(passwordWeak)).toEqual('weak');
+            expect(user).toBeNull();
         });
     });
 
     describe('given the email not standard and medium password', () => {
         test('should return a false and medium', async () => {
             const { mail, passwordMedium } = signInEmailNotStandard;
+            const users = db.collection('users');
+            const user = await users.findOne({
+                mail
+            });
 
-            expect([
-                EmailFormat(mail),
-                RequirePassword(passwordMedium)
-            ]).toEqual([false, 'medium']);
+            expect(EmailFormat(mail)).toEqual(false);
+            expect(RequirePassword(passwordMedium)).toEqual('medium');
+            expect(user).toBeNull();
         });
     });
 
     describe('given the email not standard and strong password', () => {
         test('should return a false and strong', async () => {
             const { mail, passwordStrong } = signInEmailNotStandard;
+            const users = db.collection('users');
+            const user = await users.findOne({
+                mail
+            });
 
-            expect([
-                EmailFormat(mail),
-                RequirePassword(passwordStrong)
-            ]).toEqual([false, 'strong']);
+            expect(EmailFormat(mail)).toEqual(false);
+            expect(RequirePassword(passwordStrong)).toEqual('strong');
+            expect(user).toBeNull();
         });
     });
 });
