@@ -1,11 +1,29 @@
 import express from 'express';
 import routes from '../routes';
 import errorHandler from '../middlewares/errorHandler';
-import connectDb from '../config/dbConnection';
 
 import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 
 dotenv.config();
+
+const connectDb = async () => {
+    try {
+        const connect = await mongoose.connect(process.env.DB_TEST_URL, {
+            // const connect = await mongoose.connect(process.env.CONNECTION_STRING, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        });
+        console.log(
+            'Database connected: ',
+            connect.connection.host,
+            connect.connection.name
+        );
+    } catch (err) {
+        console.log(err);
+        process.exit(1);
+    }
+};
 
 function createServer() {
     const app = express();
