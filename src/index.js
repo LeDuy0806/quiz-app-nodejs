@@ -169,3 +169,5 @@ io.on('connection', (socket) => {
         socket.leave(pinGame);
     });
 });
+
+export { server };
