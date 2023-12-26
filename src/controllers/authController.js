@@ -112,7 +112,6 @@ const loginUser = asyncHandler(async (req, res) => {
                 path: '/',
                 sameSite: 'strict'
             });
-
             const { password, ...userWithoutPassword } = user._doc;
             res.status(constants.OK).json({
                 user: userWithoutPassword,

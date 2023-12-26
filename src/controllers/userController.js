@@ -59,6 +59,19 @@ const updateUser = asyncHandler(async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
         return res.status(constants.NOT_FOUND).json(`No user with id: ${id}`);
     }
+
+    if (userName.length < 5 || userName.length > 15) {
+        return res.status(constants.NOT_FOUND).json('User Name is not format');
+    }
+
+    if (firstName.length > 4) {
+        return res.status(constants.NOT_FOUND).json('First Name is not format');
+    }
+
+    if (lastName.length > 4) {
+        return res.status(constants.NOT_FOUND).json('Last Name is not format');
+    }
+
     const findUserId = await User.findById(id);
     const newUpdate = { ...findUserId.update, profile: new Date() };
 

@@ -1,7 +1,9 @@
 import { MongoClient } from 'mongodb';
 
+import request from 'supertest';
 import {
     signUpEmailFormat,
+    signUpValid,
     signUpEmailNotFormat,
     signUpEmailExist,
     signUpUserNameExist,
@@ -10,70 +12,52 @@ import {
     RequireLong
 } from '../../utilsTest/auth';
 import { authorizeInfoUserTest } from '../../controllers/authController';
+import createServer from '../../utils/server';
+const server = createServer();
 
 import dotenv from 'dotenv';
 dotenv.config();
 
 describe('user SignUp', () => {
-    let connection;
-    let db;
-
-    beforeAll(async () => {
-        connection = await MongoClient.connect('mongodb://127.0.0.1:27017/', {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        });
-        db = await connection.db('Quizzes_App');
-    });
-
-    afterAll(async () => {
-        await connection.close();
-    });
-
-    describe('given the mail is format(not exists) and the password is strong and userName is standard length', () => {
+    describe('given the mail is format(not exists) and the password is strong (valid) and userName is standard length', () => {
         test('should return the true and strong and strong', async () => {
-            let AccessTokenAndRefreshToken = null;
-            const { mail, userNameStandard, passwordValid } = signUpEmailFormat;
+            const { mail, userName, password } = signUpValid;
+            const res1 = await request(server)
+                .post('/api/auth/checkEmail')
+                .send({ mail });
 
-            const users = db.collection('users');
-            const user = await users.findOne({
-                mail
-            });
+            const res2 = await request(server)
+                .post('/api/auth/checkUserName')
+                .send({ userName });
 
-            if (
-                !user &&
-                RequirePassword(passwordValid) === 'strong' &&
-                RequireLong(userNameStandard) === 'strong'
-            ) {
-                const mockUser = {
-                    _id: Math.random(),
-                    mail: mail,
-                    userName: userNameStandard,
-                    userType: 'Teacher'
-                };
-                // await users.insertOne(mockUser);
-                AccessTokenAndRefreshToken = await authorizeInfoUserTest(
-                    mockUser
-                );
-            }
+            const res3 = await request(server)
+                .post('/api/auth/register')
+                .send(signUpValid);
+
+            expect(res1.statusCode).toBe(200);
+            expect(res2.statusCode).toBe(200);
+            expect(res3.statusCode).toBe(200);
 
             expect([
                 EmailFormat(mail),
-                RequirePassword(passwordValid),
-                RequireLong(userNameStandard)
+                RequirePassword(password),
+                RequireLong(userName)
             ]).toEqual([true, 'strong', 'strong']);
-            expect(user).toBeNull();
-            expect(AccessTokenAndRefreshToken).not.toEqual(null);
         });
     });
 
-    describe('given the mail is format and the password is strong and userName is not standard length', () => {
-        test('should return the true and strong and weak', async () => {
+    describe('given the mail is format(not exists) and the password is strong and userName is not standard length', () => {
+        test('should return the status 200', async () => {
             const user = {
-                mail: 'anhquoc18092003@gmail.com',
+                mail: 'anhquoc19082003@gmail.com',
                 password: 'QuocAnh-1809',
                 userName: 'Quoc'
             };
+            const res = await request(server)
+                .post('/api/auth/checkEmail')
+                .send(user);
+
+            expect(res.statusCode).toBe(200);
             expect([
                 EmailFormat(user.mail),
                 RequirePassword(user.password),
@@ -82,13 +66,18 @@ describe('user SignUp', () => {
         });
     });
 
-    describe('given the mail is format and the password is medium and userName is standard length', () => {
-        test('should return the true and medium and strong', async () => {
+    describe('given the mail is format(not exists) and the password is medium and userName is standard length', () => {
+        test('should return the status 200', async () => {
             const user = {
-                mail: 'anhquoc18092003@gmail.com',
+                mail: 'anhquoc19082003@gmail.com',
                 password: 'Quoc1809',
                 userName: 'QuocAnh'
             };
+            const res = await request(server)
+                .post('/api/auth/checkEmail')
+                .send(user);
+
+            expect(res.statusCode).toBe(200);
             expect([
                 EmailFormat(user.mail),
                 RequirePassword(user.password),
@@ -97,13 +86,18 @@ describe('user SignUp', () => {
         });
     });
 
-    describe('given the mail is format and the password is medium and userName is not standard length', () => {
-        test('should return the true and medium and weak and weak', async () => {
+    describe('given the mail is format(not exists) and the password is medium and userName is not standard length', () => {
+        test('should return the status 200', async () => {
             const user = {
-                mail: 'anhquoc18092003@gmail.com',
+                mail: 'anhquoc19082003@gmail.com',
                 password: 'Quoc1809',
                 userName: 'Quoc'
             };
+            const res = await request(server)
+                .post('/api/auth/checkEmail')
+                .send(user);
+
+            expect(res.statusCode).toBe(200);
             expect([
                 EmailFormat(user.mail),
                 RequirePassword(user.password),
@@ -112,13 +106,18 @@ describe('user SignUp', () => {
         });
     });
 
-    describe('given the mail is format and the password is weak and userName is standard length', () => {
-        test('should return the true and weak and strong and strong', async () => {
+    describe('given the mail is format(not exists) and the password is weak and userName is standard length', () => {
+        test('should return the status 200', async () => {
             const user = {
-                mail: 'anhquoc18092003@gmail.com',
+                mail: 'anhquoc19082003@gmail.com',
                 password: 'Quoc189',
                 userName: 'QuocAnh'
             };
+            const res = await request(server)
+                .post('/api/auth/checkEmail')
+                .send(user);
+
+            expect(res.statusCode).toBe(200);
             expect([
                 EmailFormat(user.mail),
                 RequirePassword(user.password),
@@ -127,13 +126,19 @@ describe('user SignUp', () => {
         });
     });
 
-    describe('given the mail is format and the password is weak and userName is not standard length', () => {
-        test('should return the true and weak and strong and weak', async () => {
+    describe('given the mail is format(not exists) and the password is weak and userName is not standard length', () => {
+        test('should return the status 200', async () => {
             const user = {
-                mail: 'anhquoc18092003@gmail.com',
+                mail: 'anhquoc19082003@gmail.com',
                 password: 'Quoc189',
                 userName: 'Quoc'
             };
+            const res = await request(server)
+                .post('/api/auth/checkEmail')
+                .send(user);
+
+            expect(res.statusCode).toBe(200);
+
             expect([
                 EmailFormat(user.mail),
                 RequirePassword(user.password),
@@ -143,12 +148,18 @@ describe('user SignUp', () => {
     });
 
     describe('given the mail is not format and the password is strong and userName is standard length', () => {
-        test('should return the false and weak and strong', async () => {
+        test('should return the status 401', async () => {
             const user = {
                 mail: 'anhquoc18092003@gmail',
                 password: 'QuocAnh-1809',
                 userName: 'QuocAnh'
             };
+            const res = await request(server)
+                .post('/api/auth/checkEmail')
+                .send(user);
+
+            expect(res.statusCode).toBe(401);
+            expect(res.body).toEqual({});
             expect([
                 EmailFormat(user.mail),
                 RequirePassword(user.password),
@@ -158,12 +169,18 @@ describe('user SignUp', () => {
     });
 
     describe('given the mail is not format and the password is strong and userName is not standard length', () => {
-        test('should return the false and weak and weak', async () => {
+        test('should return the status 401', async () => {
             const user = {
                 mail: 'anhquoc18092003@gmail',
                 password: 'QuocAnh-1809',
                 userName: 'Quoc'
             };
+            const res = await request(server)
+                .post('/api/auth/checkEmail')
+                .send(user);
+
+            expect(res.statusCode).toBe(401);
+            expect(res.body).toEqual({});
             expect([
                 EmailFormat(user.mail),
                 RequirePassword(user.password),
@@ -173,12 +190,18 @@ describe('user SignUp', () => {
     });
 
     describe('given the mail is not format and the password is medium and userName is standard length', () => {
-        test('should return the false and medium and strong', async () => {
+        test('should return the status 401', async () => {
             const user = {
                 mail: 'anhquoc18092003@gmail',
                 password: 'Quoc1809',
                 userName: 'QuocAnh'
             };
+            const res = await request(server)
+                .post('/api/auth/checkEmail')
+                .send(user);
+
+            expect(res.statusCode).toBe(401);
+            expect(res.body).toEqual({});
             expect([
                 EmailFormat(user.mail),
                 RequirePassword(user.password),
@@ -188,12 +211,18 @@ describe('user SignUp', () => {
     });
 
     describe('given the mail is not format and the password is medium and userName is not standard length', () => {
-        test('should return the false and medium', async () => {
+        test('should return the status 401', async () => {
             const user = {
                 mail: 'anhquoc18092003@gmail',
                 password: 'Quoc1809',
                 userName: 'Quoc'
             };
+            const res = await request(server)
+                .post('/api/auth/checkEmail')
+                .send(user);
+
+            expect(res.statusCode).toBe(401);
+            expect(res.body).toEqual({});
             expect([
                 EmailFormat(user.mail),
                 RequirePassword(user.password),
@@ -203,12 +232,18 @@ describe('user SignUp', () => {
     });
 
     describe('given the mail is not format and the password is weak and userName is standard length', () => {
-        test('should return the false and weak and strong', async () => {
+        test('should return the status 401', async () => {
             const user = {
                 mail: 'anhquoc18092003@gmail',
                 password: 'Quoc189',
                 userName: 'QuocAnh'
             };
+            const res = await request(server)
+                .post('/api/auth/checkEmail')
+                .send(user);
+
+            expect(res.statusCode).toBe(401);
+            expect(res.body).toEqual({});
             expect([
                 EmailFormat(user.mail),
                 RequirePassword(user.password),
@@ -218,12 +253,18 @@ describe('user SignUp', () => {
     });
 
     describe('given the mail is not format and the password is weak and userName is not standard length', () => {
-        test('should return the false and weak and weak', async () => {
+        test('should return the status 401', async () => {
             const user = {
                 mail: 'anhquoc18092003@gmail',
                 password: 'Quoc189',
                 userName: 'Quoc'
             };
+            const res = await request(server)
+                .post('/api/auth/checkEmail')
+                .send(user);
+
+            expect(res.statusCode).toBe(401);
+            expect(res.body).toEqual({});
             expect([
                 EmailFormat(user.mail),
                 RequirePassword(user.password),
@@ -232,39 +273,27 @@ describe('user SignUp', () => {
         });
     });
 
-    // describe('given the SignUp information are valid', () => {
-    //     test('should return the user payload', async () => {
-    //         const { mail, userName } = signUpValid;
-    //         const users = db.collection('users');
-    //         const emailExits = await users.findOne({
-    //             mail
-    //         });
-    //         const userNameExist = await users.findOne({
-    //             userName
-    //         });
-    //         expect([emailExits, userNameExist]).toEqual([null, null]);
-    //     });
-    // });
-
     describe('given the email already exist', () => {
         test('should return a 422', async () => {
             const { mail } = signUpEmailExist;
-            const users = db.collection('users');
-            const emailExits = await users.findOne({
-                mail
-            });
-            expect(emailExits).not.toBeNull();
+            const res = await request(server)
+                .post('/api/auth/checkEmail')
+                .send({ mail });
+
+            expect(res.statusCode).toBe(422);
+            expect(res.body).toEqual({});
         });
     });
 
     describe('given the userName exist', () => {
         test('should return a 422', async () => {
             const { userName } = signUpUserNameExist;
-            const users = db.collection('users');
-            const userNameExits = await users.findOne({
-                userName
-            });
-            expect(userNameExits).not.toBeNull();
+            const res = await request(server)
+                .post('/api/auth/checkUserName')
+                .send({ userName });
+
+            expect(res.statusCode).toBe(422);
+            expect(res.body).toEqual({});
         });
     });
 });

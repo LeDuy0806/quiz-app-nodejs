@@ -52,6 +52,17 @@ const RequireShort = (value) => {
     }
 };
 
+const signUpValid = {
+    mail: 'tranthanh18092003@gmail.com',
+    avatar: '',
+    userName: 'TRANTHANH',
+    userType: 'Teacher',
+    firstName: 'Anh',
+    lastName: 'TRAN',
+    password: 'QuocAnh-1809',
+    workspace: {}
+};
+
 const signUpEmailNotFormat = {
     mail: 'tranthanh18092003@gmail',
     userNameNotStandard: 'Anh',
@@ -92,7 +103,7 @@ const signInEmailValid = {
 };
 
 const signInEmailNotExist = {
-    mail: 'tranthanh18092003@gmail.com',
+    mail: 'phuoctri18092003@gmail.com',
     passwordWeak: 'anh',
     passwordMedium: 'anhquoc1',
     passwordStrong: 'QuocAnh-1809'
@@ -106,6 +117,7 @@ const signInEmailNotStandard = {
 };
 
 export {
+    signUpValid,
     signUpEmailFormat,
     signUpEmailNotFormat,
     signUpEmailExist,
