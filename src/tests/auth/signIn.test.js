@@ -1,177 +1,118 @@
-import { MongoClient } from 'mongodb';
+import request from 'supertest';
 
+import createServer from '../../utils/server';
 import {
     signInEmailValid,
     signInEmailNotStandard,
     signInEmailNotExist,
-    EmailFormat,
-    RequirePassword
+    EmailFormat
 } from '../../utilsTest/auth';
-import bcrypt from 'bcrypt';
-import dotenv from 'dotenv';
-import { authorizeInfoUserTest } from '../../controllers/authController';
-dotenv.config();
 
-describe('User SignIn', () => {
-    let connection;
-    let db;
+const server = createServer();
 
-    beforeAll(async () => {
-        connection = await MongoClient.connect('mongodb://127.0.0.1:27017/', {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        });
-        db = await connection.db('Quizzes_App');
-    });
-
-    afterAll(async () => {
-        await connection.close();
-    });
-
+describe('Sign In', () => {
     describe('given the valid mail and strong password (passWordValid)', () => {
-        test('should return the true and strong', async () => {
-            let AccessTokenAndRefreshToken = null;
+        test('should return the status 200', async () => {
             const { mail, passwordValid } = signInEmailValid;
+            const res = await request(server)
+                .post('/api/auth/login')
+                .send({ mail: mail, password: passwordValid });
 
-            const users = db.collection('users');
-            const user = await users.findOne({
-                mail
-            });
-
-            const checkPass = await bcrypt.compare(
-                passwordValid + '',
-                user.password
-            );
-
-            if (checkPass) {
-                AccessTokenAndRefreshToken = await authorizeInfoUserTest(user);
-            }
-
-            expect(checkPass).toEqual(true);
-            expect(RequirePassword(passwordValid)).toEqual('strong');
-            expect(AccessTokenAndRefreshToken).not.toEqual(null);
+            expect(res.statusCode).toBe(200);
         });
     });
 
     describe('given the valid mail and medium password (passWordInValid)', () => {
-        test('should return the false and medium', async () => {
+        test('should return the status 401', async () => {
             const { mail, passwordMedium } = signInEmailValid;
+            const res = await request(server)
+                .post('/api/auth/login')
+                .send({ mail: mail, password: passwordMedium });
 
-            const users = db.collection('users');
-            const user = await users.findOne({
-                mail
-            });
-
-            const checkPass = await bcrypt.compare(
-                passwordMedium + '',
-                user.password
-            );
-
-            expect(checkPass).toEqual(false);
-            expect(RequirePassword(passwordMedium)).toEqual('medium');
+            expect(res.statusCode).toBe(401);
         });
     });
 
     describe('given the valid mail and weak password (passWordInValid)', () => {
-        test('should return the false and weak', async () => {
+        test('should return the status 401', async () => {
             const { mail, passwordWeak } = signInEmailValid;
+            const res = await request(server)
+                .post('/api/auth/login')
+                .send({ mail: mail, password: passwordWeak });
 
-            const users = db.collection('users');
-            const user = await users.findOne({
-                mail
-            });
-
-            const checkPass = await bcrypt.compare(
-                passwordWeak + '',
-                user.password
-            );
-
-            expect(checkPass).toEqual(false);
-            expect(RequirePassword(passwordWeak)).toEqual('weak');
+            expect(res.statusCode).toBe(401);
         });
     });
 
     describe('given the email does not exists and weak password', () => {
-        test('should return a null and weak', async () => {
+        test('should return the status 401', async () => {
             const { mail, passwordWeak } = signInEmailNotExist;
 
-            const users = db.collection('users');
-            const user = await users.findOne({
-                mail
-            });
+            const res = await request(server)
+                .post('/api/auth/login')
+                .send({ mail: mail, password: passwordWeak });
 
-            expect(user).toBeNull();
-            expect(RequirePassword(passwordWeak)).toEqual('weak');
+            expect(res.statusCode).toBe(401);
         });
     });
 
     describe('given the email does not exists and medium password', () => {
-        test('should return a null and medium', async () => {
+        test('should return the status 401', async () => {
             const { mail, passwordMedium } = signInEmailNotExist;
 
-            const users = db.collection('users');
-            const user = await users.findOne({
-                mail
-            });
+            const res = await request(server)
+                .post('/api/auth/login')
+                .send({ mail: mail, password: passwordMedium });
 
-            expect(user).toBeNull();
-            expect(RequirePassword(passwordMedium)).toEqual('medium');
+            expect(res.statusCode).toBe(401);
         });
     });
 
     describe('given the email does not exists and strong password', () => {
-        test('should return a null and strong', async () => {
+        test('should return the status 401', async () => {
             const { mail, passwordStrong } = signInEmailNotExist;
 
-            const users = db.collection('users');
-            const user = await users.findOne({
-                mail
-            });
+            const res = await request(server)
+                .post('/api/auth/login')
+                .send({ mail: mail, password: passwordStrong });
 
-            expect(user).toBeNull();
-            expect(RequirePassword(passwordStrong)).toEqual('strong');
+            expect(res.statusCode).toBe(401);
         });
     });
 
     describe('given the email not standard and weak password', () => {
-        test('should return a false and weak', async () => {
-            const { mail, passwordWeak } = signInEmailNotStandard;
-            const users = db.collection('users');
-            const user = await users.findOne({
-                mail
-            });
+        test('should return the status 401', async () => {
+            const { mail, passwordStrong } = signInEmailNotStandard;
 
+            const res = await request(server)
+                .post('/api/auth/login')
+                .send({ mail: mail, password: passwordStrong });
             expect(EmailFormat(mail)).toEqual(false);
-            expect(RequirePassword(passwordWeak)).toEqual('weak');
-            expect(user).toBeNull();
+            expect(res.statusCode).toBe(401);
         });
     });
 
     describe('given the email not standard and medium password', () => {
-        test('should return a false and medium', async () => {
+        test('should return the status 401', async () => {
             const { mail, passwordMedium } = signInEmailNotStandard;
-            const users = db.collection('users');
-            const user = await users.findOne({
-                mail
-            });
 
+            const res = await request(server)
+                .post('/api/auth/login')
+                .send({ mail: mail, password: passwordMedium });
             expect(EmailFormat(mail)).toEqual(false);
-            expect(RequirePassword(passwordMedium)).toEqual('medium');
-            expect(user).toBeNull();
+            expect(res.statusCode).toBe(401);
         });
     });
 
     describe('given the email not standard and strong password', () => {
-        test('should return a false and strong', async () => {
+        test('should return the status 401', async () => {
             const { mail, passwordStrong } = signInEmailNotStandard;
-            const users = db.collection('users');
-            const user = await users.findOne({
-                mail
-            });
 
+            const res = await request(server)
+                .post('/api/auth/login')
+                .send({ mail: mail, password: passwordStrong });
             expect(EmailFormat(mail)).toEqual(false);
-            expect(RequirePassword(passwordStrong)).toEqual('strong');
-            expect(user).toBeNull();
+            expect(res.statusCode).toBe(401);
         });
     });
 });

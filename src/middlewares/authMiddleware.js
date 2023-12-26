@@ -2,10 +2,16 @@ import asyncHandler from 'express-async-handler';
 import jwt from 'jsonwebtoken';
 import constants from '../constants/httpStatus.js';
 import User from '../models/userModel.js';
+import { EmailFormat } from '../utilsTest/auth.js';
 const { TokenExpiredError } = jwt;
 
 const checkEmailExist = asyncHandler(async (req, res) => {
     const { mail } = req.body;
+
+    if (!EmailFormat(mail)) {
+        res.status(constants.UNAUTHORIZED);
+        throw new Error('Email does not format');
+    }
 
     const user = await User.findOne({ mail });
     if (user) {
@@ -118,6 +124,7 @@ const verifyUserAuthorization = asyncHandler(async (req, res, next) => {
             }
 
             const user = decoded.user;
+            console.log(user);
             //check admin role
             if (user._id === req.params.id || user.userType === 'Admin') {
                 // req.user.checkMySelf = true;
