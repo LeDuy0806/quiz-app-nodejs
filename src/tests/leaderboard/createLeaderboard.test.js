@@ -46,7 +46,7 @@ describe('Create Leaderboard', () => {
     describe('given the invalid game, and valid quiz, pin', () => {
         const { game, quiz, pin, playerResultList, currentLeaderBoard } =
             leaderBoardInValidGame;
-        test('should return the newLeaderBoard', async () => {
+        test('should return the 404 bad request', async () => {
             const res = await request(server)
                 .post(`/api/leaderboard`)
                 .set('Authorization', `Bearer ${loginRes.body.accessToken}`)
@@ -64,7 +64,7 @@ describe('Create Leaderboard', () => {
     describe('given the invalid quiz, and valid game, pin', () => {
         const { game, quiz, pin, playerResultList, currentLeaderBoard } =
             leaderBoardInValidQuiz;
-        test('should return the newLeaderBoard', async () => {
+        test('should return the 404 bad request', async () => {
             const res = await request(server)
                 .post(`/api/leaderboard`)
                 .set('Authorization', `Bearer ${loginRes.body.accessToken}`)

@@ -42,14 +42,15 @@ const getHistory = asyncHandler(async (req, res) => {
 const createLeaderBoard = asyncHandler(async (req, res) => {
     const { game, quiz, pin, playerResultList, currentLeaderBoard } = req.body;
 
-    console.log(req.body);
-
     if (game === null) {
         res.status(constants.NOT_FOUND);
     }
 
     if (quiz === null) {
-        console.log('Dit mem aaaay');
+        res.status(constants.NOT_FOUND);
+    }
+
+    if ((pin === null) | undefined) {
         res.status(constants.NOT_FOUND);
     }
 

@@ -7,15 +7,30 @@ import asyncHandler from 'express-async-handler';
 const createGame = asyncHandler(async (req, res) => {
     const { host, quiz, pin, isLive, playerList, playerResultList } = req.body;
 
+    console.log(req.body);
+    if (host === null) {
+        res.status(constants.NOT_FOUND);
+    }
+
+    if (quiz === null) {
+        res.status(constants.NOT_FOUND);
+    }
+
+    if (pin === null) {
+        res.status(constants.NOT_FOUND);
+    }
+
+    const game = await Game.create({
+        host: host._id,
+        quiz: quiz._id,
+        pin,
+        isLive,
+        playerList,
+        playerResultList
+    });
+
     try {
-        const game = await Game.create({
-            host,
-            quiz,
-            pin,
-            isLive,
-            playerList,
-            playerResultList
-        });
+        const newGame = await game.save();
         res.status(constants.CREATE).json(game);
     } catch (error) {
         res.status(constants.SERVER_ERROR).json({ message: error.message });
