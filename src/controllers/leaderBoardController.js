@@ -42,6 +42,17 @@ const getHistory = asyncHandler(async (req, res) => {
 const createLeaderBoard = asyncHandler(async (req, res) => {
     const { game, quiz, pin, playerResultList, currentLeaderBoard } = req.body;
 
+    console.log(req.body);
+
+    if (game === null) {
+        res.status(constants.NOT_FOUND);
+    }
+
+    if (quiz === null) {
+        console.log('Dit mem aaaay');
+        res.status(constants.NOT_FOUND);
+    }
+
     const leaderBoard = new LeaderBoard({
         game: game._id,
         quiz: quiz._id,
@@ -68,6 +79,13 @@ const deleteLeaderBoard = asyncHandler(async (req, res) => {
     }
 
     try {
+        const leaderBoard = new LeaderBoard({
+            game: game._id,
+            quiz: quiz._id,
+            playerResultList,
+            pin,
+            currentLeaderBoard
+        });
         await LeaderBoard.findByIdAndRemove(id);
         res.status(constants.OK).json({
             message: 'LeaderBoard deleted successfully'
