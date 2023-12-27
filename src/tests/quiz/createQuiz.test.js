@@ -2,7 +2,7 @@ import request from 'supertest';
 
 import createServer from '../../utils/server';
 import login from '../../utilsTest/login';
-import { createQuizRequest } from '../../utilsTest/createQuiz';
+import { createQuizRequest } from '../../utilsTest/quizRequest';
 
 const server = createServer();
 
@@ -36,6 +36,26 @@ describe('Create Quiz', () => {
             .send({ ...createQuizRequest, pointsPerQuestion: '' });
         expect(res.statusCode).toBe(400);
         expect(res.body.message).toBe('Points per question is required');
+    });
+
+    test('Should return 400 if points per question is not a number', async () => {
+        const res = await request(server)
+            .post('/api/quiz')
+            .set('Authorization', `Bearer ${loginRes.body.accessToken}`)
+            .send({ ...createQuizRequest, pointsPerQuestion: 'abc' });
+        expect(res.statusCode).toBe(400);
+        expect(res.body.message).toBe('Points per question must be a number');
+    });
+
+    test('Should return 400 if points per question is less than 1', async () => {
+        const res = await request(server)
+            .post('/api/quiz')
+            .set('Authorization', `Bearer ${loginRes.body.accessToken}`)
+            .send({ ...createQuizRequest, pointsPerQuestion: 0 });
+        expect(res.statusCode).toBe(400);
+        expect(res.body.message).toBe(
+            'Points per question must be greater than 0'
+        );
     });
 
     test('Should return 400 if question list is empty', async () => {
