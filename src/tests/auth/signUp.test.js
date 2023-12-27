@@ -154,7 +154,7 @@ describe('user SignUp', () => {
                 .send(user);
 
             expect(res.statusCode).toBe(401);
-            expect(res.body).toEqual({});
+            expect(res.body.message).toBe('Email does not format');
             expect([
                 EmailFormat(user.mail),
                 RequirePassword(user.password),
@@ -175,7 +175,8 @@ describe('user SignUp', () => {
                 .send(user);
 
             expect(res.statusCode).toBe(401);
-            expect(res.body).toEqual({});
+            expect(res.body.message).toBe('Email does not format');
+
             expect([
                 EmailFormat(user.mail),
                 RequirePassword(user.password),
@@ -196,7 +197,7 @@ describe('user SignUp', () => {
                 .send(user);
 
             expect(res.statusCode).toBe(401);
-            expect(res.body).toEqual({});
+            expect(res.body.message).toBe('Email does not format');
             expect([
                 EmailFormat(user.mail),
                 RequirePassword(user.password),
@@ -217,7 +218,7 @@ describe('user SignUp', () => {
                 .send(user);
 
             expect(res.statusCode).toBe(401);
-            expect(res.body).toEqual({});
+            expect(res.body.message).toBe('Email does not format');
             expect([
                 EmailFormat(user.mail),
                 RequirePassword(user.password),
@@ -238,7 +239,7 @@ describe('user SignUp', () => {
                 .send(user);
 
             expect(res.statusCode).toBe(401);
-            expect(res.body).toEqual({});
+            expect(res.body.message).toBe('Email does not format');
             expect([
                 EmailFormat(user.mail),
                 RequirePassword(user.password),
@@ -259,7 +260,7 @@ describe('user SignUp', () => {
                 .send(user);
 
             expect(res.statusCode).toBe(401);
-            expect(res.body).toEqual({});
+            expect(res.body.message).toBe('Email does not format');
             expect([
                 EmailFormat(user.mail),
                 RequirePassword(user.password),
@@ -276,7 +277,7 @@ describe('user SignUp', () => {
                 .send({ mail });
 
             expect(res.statusCode).toBe(422);
-            expect(res.body).toEqual({});
+            expect(res.body.message).toBe('Email already exists');
         });
     });
 
@@ -288,7 +289,7 @@ describe('user SignUp', () => {
                 .send({ userName });
 
             expect(res.statusCode).toBe(422);
-            expect(res.body).toEqual({});
+            expect(res.body.message).toBe('userName already exists');
         });
     });
 });
