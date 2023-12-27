@@ -6,7 +6,7 @@ const errorHandler = (err, req, res, next) => {
     const message = err.message || 'Server Error';
     const stackTrace = err.stack || null;
 
-    res.status(statusCode).json({
+    return res.status(statusCode).json({
         statusCode,
         message,
         stackTrace
