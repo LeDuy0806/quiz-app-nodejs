@@ -10,14 +10,17 @@ const createGame = asyncHandler(async (req, res) => {
     console.log(req.body);
     if (host === null) {
         res.status(constants.NOT_FOUND);
+        throw new Error('Host is missing');
     }
 
     if (quiz === null) {
         res.status(constants.NOT_FOUND);
+        throw new Error('Quiz is missing');
     }
 
     if (pin === null) {
         res.status(constants.NOT_FOUND);
+        throw new Error('Pin is missing');
     }
 
     const game = await Game.create({
