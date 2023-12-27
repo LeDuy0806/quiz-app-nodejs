@@ -31,8 +31,8 @@ function createServer() {
     connectDb();
 
     app.use(express.json());
-    app.use(errorHandler);
     app.use(routes);
+    app.use(errorHandler);
 
     const server = app.listen(4113, () => {
         console.log('Test server running on port 4113');

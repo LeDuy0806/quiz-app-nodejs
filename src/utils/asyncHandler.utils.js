@@ -3,7 +3,6 @@ export const wrapRequestHandler = (func) => {
         try {
             await func(req, res, next);
         } catch (error) {
-            res.status(500);
             next(error);
         }
     };
