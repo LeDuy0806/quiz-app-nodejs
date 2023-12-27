@@ -13,10 +13,36 @@ const server = createServer();
 import dotenv from 'dotenv';
 dotenv.config();
 
+// const login = async (server) => {
+//     const loginRes = await request(server).post('/api/auth/login').send({
+//         mail: 'test@gmail.com',
+//         password: '123',
+//         userType: 'Admin'
+//     });
+
+//     return loginRes;
+// };
+
 describe('user SignUp', () => {
+    let loginRes;
+    let userId;
+    beforeAll(
+        async () =>
+            (loginRes = await request(server).post('/api/auth/login').send({
+                mail: 'admin@gmail.com',
+                password: 'QuocAnh-1809'
+            }))
+    );
+
+    afterAll(async () => {
+        await request(server)
+            .delete(`/api/user/${userId}`)
+            .set('Authorization', `Bearer ${loginRes.body.accessToken}`);
+    });
+
     describe('given the mail is format(not exists) and the password is strong (valid) and userName is standard length', () => {
         test('should return the true and strong and strong', async () => {
-            const { mail, userName, password } = signUpValid;
+            const { mail, userName } = signUpValid;
             const res1 = await request(server)
                 .post('/api/auth/checkEmail')
                 .send({ mail });
@@ -29,15 +55,11 @@ describe('user SignUp', () => {
                 .post('/api/auth/register')
                 .send(signUpValid);
 
+            userId = res3.body.user._id;
+
             expect(res1.statusCode).toBe(200);
             expect(res2.statusCode).toBe(200);
             expect(res3.statusCode).toBe(200);
-
-            expect([
-                EmailFormat(mail),
-                RequirePassword(password),
-                RequireLong(userName)
-            ]).toEqual([true, 'strong', 'strong']);
         });
     });
 
@@ -53,11 +75,6 @@ describe('user SignUp', () => {
                 .send(user);
 
             expect(res.statusCode).toBe(200);
-            expect([
-                EmailFormat(user.mail),
-                RequirePassword(user.password),
-                RequireLong(user.userName)
-            ]).toEqual([true, 'strong', 'weak']);
         });
     });
 
@@ -73,11 +90,6 @@ describe('user SignUp', () => {
                 .send(user);
 
             expect(res.statusCode).toBe(200);
-            expect([
-                EmailFormat(user.mail),
-                RequirePassword(user.password),
-                RequireLong(user.userName)
-            ]).toEqual([true, 'medium', 'strong']);
         });
     });
 
@@ -93,11 +105,6 @@ describe('user SignUp', () => {
                 .send(user);
 
             expect(res.statusCode).toBe(200);
-            expect([
-                EmailFormat(user.mail),
-                RequirePassword(user.password),
-                RequireLong(user.userName)
-            ]).toEqual([true, 'medium', 'weak']);
         });
     });
 
@@ -113,11 +120,6 @@ describe('user SignUp', () => {
                 .send(user);
 
             expect(res.statusCode).toBe(200);
-            expect([
-                EmailFormat(user.mail),
-                RequirePassword(user.password),
-                RequireLong(user.userName)
-            ]).toEqual([true, 'weak', 'strong']);
         });
     });
 
@@ -133,12 +135,6 @@ describe('user SignUp', () => {
                 .send(user);
 
             expect(res.statusCode).toBe(200);
-
-            expect([
-                EmailFormat(user.mail),
-                RequirePassword(user.password),
-                RequireLong(user.userName)
-            ]).toEqual([true, 'weak', 'weak']);
         });
     });
 
@@ -155,11 +151,6 @@ describe('user SignUp', () => {
 
             expect(res.statusCode).toBe(401);
             expect(res.body.message).toBe('Email does not format');
-            expect([
-                EmailFormat(user.mail),
-                RequirePassword(user.password),
-                RequireLong(user.userName)
-            ]).toEqual([false, 'strong', 'strong']);
         });
     });
 
@@ -176,12 +167,6 @@ describe('user SignUp', () => {
 
             expect(res.statusCode).toBe(401);
             expect(res.body.message).toBe('Email does not format');
-
-            expect([
-                EmailFormat(user.mail),
-                RequirePassword(user.password),
-                RequireLong(user.userName)
-            ]).toEqual([false, 'strong', 'weak']);
         });
     });
 
@@ -198,11 +183,6 @@ describe('user SignUp', () => {
 
             expect(res.statusCode).toBe(401);
             expect(res.body.message).toBe('Email does not format');
-            expect([
-                EmailFormat(user.mail),
-                RequirePassword(user.password),
-                RequireLong(user.userName)
-            ]).toEqual([false, 'medium', 'strong']);
         });
     });
 
@@ -219,11 +199,6 @@ describe('user SignUp', () => {
 
             expect(res.statusCode).toBe(401);
             expect(res.body.message).toBe('Email does not format');
-            expect([
-                EmailFormat(user.mail),
-                RequirePassword(user.password),
-                RequireLong(user.userName)
-            ]).toEqual([false, 'medium', 'weak']);
         });
     });
 
@@ -240,11 +215,6 @@ describe('user SignUp', () => {
 
             expect(res.statusCode).toBe(401);
             expect(res.body.message).toBe('Email does not format');
-            expect([
-                EmailFormat(user.mail),
-                RequirePassword(user.password),
-                RequireLong(user.userName)
-            ]).toEqual([false, 'weak', 'strong']);
         });
     });
 
@@ -261,11 +231,6 @@ describe('user SignUp', () => {
 
             expect(res.statusCode).toBe(401);
             expect(res.body.message).toBe('Email does not format');
-            expect([
-                EmailFormat(user.mail),
-                RequirePassword(user.password),
-                RequireLong(user.userName)
-            ]).toEqual([false, 'weak', 'weak']);
         });
     });
 

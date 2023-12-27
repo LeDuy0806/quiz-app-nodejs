@@ -5,6 +5,7 @@ import User from '../models/userModel.js';
 import RefreshToken from '../models/refreshTokenModel.js';
 import constants from '../constants/httpStatus.js';
 import crypto from 'crypto';
+import { EmailFormat } from '../utilsTest/auth.js';
 
 //generate token
 const generateAccessToken = async (data) => {
@@ -84,6 +85,11 @@ export const authorizeInfoUserTest = async (user) => {
 const loginUser = asyncHandler(async (req, res) => {
     const { mail, password } = req.body;
     const user = await User.findOne({ mail });
+
+    if (!EmailFormat(mail)) {
+        res.status(constants.UNAUTHORIZED);
+        throw new Error('Email does not format');
+    }
 
     if (!user) {
         res.status(constants.UNAUTHORIZED);
