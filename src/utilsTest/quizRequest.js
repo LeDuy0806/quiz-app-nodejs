@@ -1,5 +1,5 @@
 export const createQuizRequest = {
-    name: 'Quiz Example 3',
+    name: 'Quiz Example',
     creator: {
         _id: '657bb88103adc5835c989d27',
         userName: 'VanDuy',
@@ -70,7 +70,7 @@ export const createQuizRequest = {
 
 export const updateQuizRequest = {
     _id: '65895a6e2e690847f671e036',
-    name: 'Quiz Example 3',
+    name: 'Quiz Example',
     creator: {
         _id: '657bb88103adc5835c989d27',
         userName: 'VanDuy',

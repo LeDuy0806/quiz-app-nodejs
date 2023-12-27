@@ -41,7 +41,6 @@ describe('Update Quiz', () => {
             .send(updateQuizRequest);
 
         expect(res.statusCode).toBe(400);
-        console.log(res.body);
         expect(res.body.message).toBe(`Invalid id: ${invalidId}`);
     });
 
@@ -63,13 +62,33 @@ describe('Update Quiz', () => {
         expect(res.body.message).toBe('Points per question is required');
     });
 
+    test('Should return 400 if points per question is not a number', async () => {
+        const res = await request(server)
+            .put(`/api/quiz/${existedQuizId}`)
+            .set('Authorization', `Bearer ${loginRes.body.accessToken}`)
+            .send({ ...updateQuizRequest, pointsPerQuestion: 'abc' });
+        expect(res.statusCode).toBe(400);
+        expect(res.body.message).toBe('Points per question must be a number');
+    });
+
+    test('Should return 400 if points per question is less than 1', async () => {
+        const res = await request(server)
+            .put(`/api/quiz/${existedQuizId}`)
+            .set('Authorization', `Bearer ${loginRes.body.accessToken}`)
+            .send({ ...updateQuizRequest, pointsPerQuestion: 0 });
+        expect(res.statusCode).toBe(400);
+        expect(res.body.message).toBe(
+            'Points per question must be greater than 0'
+        );
+    });
+
     test('Should return 400 if question list is empty', async () => {
         const res = await request(server)
             .put(`/api/quiz/${existedQuizId}`)
             .set('Authorization', `Bearer ${loginRes.body.accessToken}`)
             .send({ ...updateQuizRequest, questionList: [] });
         expect(res.statusCode).toBe(400);
-        expect(res.body.message).toBe('Question List must be not empty!');
+        expect(res.body.message).toBe('Question List must be not empty');
     });
 
     test('Should return 404 if category not found', async () => {
