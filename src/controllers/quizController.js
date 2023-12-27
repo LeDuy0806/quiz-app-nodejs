@@ -586,9 +586,23 @@ const updateQuiz = asyncHandler(async (req, res) => {
         throw new Error('Description is required');
     }
 
-    if (!pointsPerQuestion) {
+    if (
+        pointsPerQuestion === null ||
+        pointsPerQuestion === undefined ||
+        pointsPerQuestion === ''
+    ) {
         res.status(constants.BAD_REQUEST);
         throw new Error('Points per question is required');
+    }
+
+    if (typeof pointsPerQuestion === 'string') {
+        res.status(constants.BAD_REQUEST);
+        throw new Error('Points per question must be a number');
+    }
+
+    if (pointsPerQuestion === 0) {
+        res.status(constants.BAD_REQUEST);
+        throw new Error('Points per question must be greater than 0');
     }
 
     if (!tags) {
@@ -598,7 +612,7 @@ const updateQuiz = asyncHandler(async (req, res) => {
 
     if (questionList.length === 0) {
         res.status(constants.BAD_REQUEST);
-        throw new Error('Question List must be not empty!');
+        throw new Error('Question List must be not empty');
     }
 
     const categoryResult = await Category.findOne({
