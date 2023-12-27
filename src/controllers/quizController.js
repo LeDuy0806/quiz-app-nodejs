@@ -383,10 +383,23 @@ const createQuiz = asyncHandler(async (req, res) => {
         });
     }
 
-    if (!pointsPerQuestion) {
-        return res.status(constants.BAD_REQUEST).json({
-            message: 'Points per question is required'
-        });
+    if (
+        pointsPerQuestion === null ||
+        pointsPerQuestion === undefined ||
+        pointsPerQuestion === ''
+    ) {
+        res.status(constants.BAD_REQUEST);
+        throw new Error('Points per question is required');
+    }
+
+    if (typeof pointsPerQuestion === 'string') {
+        res.status(constants.BAD_REQUEST);
+        throw new Error('Points per question must be a number');
+    }
+
+    if (pointsPerQuestion === 0) {
+        res.status(constants.BAD_REQUEST);
+        throw new Error('Points per question must be greater than 0');
     }
 
     if (questionList.length === 0) {

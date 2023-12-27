@@ -69,7 +69,7 @@ export const createQuizRequest = {
 };
 
 export const updateQuizRequest = {
-    _id: '65895a6e2e690847f671e036',
+    _id: '658c2dd2fbcd909d329f0ffd',
     name: 'Quiz Example',
     creator: {
         _id: '657bb88103adc5835c989d27',
