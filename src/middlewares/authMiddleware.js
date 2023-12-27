@@ -92,6 +92,7 @@ const verifyAdmin = asyncHandler(async (req, res, next) => {
             }
 
             const user = decoded.user;
+            console.log(user);
             //check admin role
             if (user.userType === 'Admin') {
                 next();
@@ -124,7 +125,6 @@ const verifyUserAuthorization = asyncHandler(async (req, res, next) => {
             }
 
             const user = decoded.user;
-            console.log(user);
             //check admin role
             if (user._id === req.params.id || user.userType === 'Admin') {
                 // req.user.checkMySelf = true;

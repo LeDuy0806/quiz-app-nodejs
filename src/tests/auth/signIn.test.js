@@ -22,7 +22,7 @@ describe('Sign In', () => {
         });
     });
 
-    describe('given the valid mail and medium password (passWordInValid)', () => {
+    describe('given the valid mail and medium password (passwordInValid)', () => {
         test('should return the status 401', async () => {
             const { mail, passwordMedium } = signInEmailValid;
             const res = await request(server)
@@ -30,6 +30,7 @@ describe('Sign In', () => {
                 .send({ mail: mail, password: passwordMedium });
 
             expect(res.statusCode).toBe(401);
+            expect(res.body.message).toBe('Wrong password');
         });
     });
 
@@ -41,6 +42,7 @@ describe('Sign In', () => {
                 .send({ mail: mail, password: passwordWeak });
 
             expect(res.statusCode).toBe(401);
+            expect(res.body.message).toBe('Wrong password');
         });
     });
 
@@ -53,6 +55,7 @@ describe('Sign In', () => {
                 .send({ mail: mail, password: passwordWeak });
 
             expect(res.statusCode).toBe(401);
+            expect(res.body.message).toBe('Account not exist');
         });
     });
 
@@ -65,6 +68,7 @@ describe('Sign In', () => {
                 .send({ mail: mail, password: passwordMedium });
 
             expect(res.statusCode).toBe(401);
+            expect(res.body.message).toBe('Account not exist');
         });
     });
 
@@ -77,6 +81,7 @@ describe('Sign In', () => {
                 .send({ mail: mail, password: passwordStrong });
 
             expect(res.statusCode).toBe(401);
+            expect(res.body.message).toBe('Account not exist');
         });
     });
 
@@ -87,8 +92,9 @@ describe('Sign In', () => {
             const res = await request(server)
                 .post('/api/auth/login')
                 .send({ mail: mail, password: passwordStrong });
-            expect(EmailFormat(mail)).toEqual(false);
+
             expect(res.statusCode).toBe(401);
+            expect(res.body.message).toBe('Email does not format');
         });
     });
 
@@ -99,8 +105,9 @@ describe('Sign In', () => {
             const res = await request(server)
                 .post('/api/auth/login')
                 .send({ mail: mail, password: passwordMedium });
-            expect(EmailFormat(mail)).toEqual(false);
+
             expect(res.statusCode).toBe(401);
+            expect(res.body.message).toBe('Email does not format');
         });
     });
 
@@ -111,8 +118,9 @@ describe('Sign In', () => {
             const res = await request(server)
                 .post('/api/auth/login')
                 .send({ mail: mail, password: passwordStrong });
-            expect(EmailFormat(mail)).toEqual(false);
+
             expect(res.statusCode).toBe(401);
+            expect(res.body.message).toBe('Email does not format');
         });
     });
 });
