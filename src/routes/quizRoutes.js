@@ -48,7 +48,7 @@ quizRouter.post('/draft', createDraftQuiz);
 quizRouter.post('/import', importQuiz);
 quizRouter.post('/:id/commentQuiz', commentQuiz);
 
-quizRouter.put('/:id', verifyQuizOwner, updateQuiz);
+quizRouter.put('/:id', updateQuiz);
 quizRouter.put('/:id/likeQuiz', likeQuiz);
 
 quizRouter.delete('/:id', verifyQuizOwner, deleteQuiz);
