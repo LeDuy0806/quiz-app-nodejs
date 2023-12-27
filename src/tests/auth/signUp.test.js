@@ -1,17 +1,12 @@
-import { MongoClient } from 'mongodb';
-
 import request from 'supertest';
 import {
-    signUpEmailFormat,
     signUpValid,
-    signUpEmailNotFormat,
     signUpEmailExist,
     signUpUserNameExist,
     EmailFormat,
     RequirePassword,
     RequireLong
 } from '../../utilsTest/auth';
-import { authorizeInfoUserTest } from '../../controllers/authController';
 import createServer from '../../utils/server';
 const server = createServer();
 
