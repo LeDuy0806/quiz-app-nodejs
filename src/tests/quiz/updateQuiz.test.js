@@ -9,7 +9,7 @@ const server = createServer();
 describe('Update Quiz', () => {
     let loginRes;
     const invalidId = '123';
-    const existedQuizId = '65895a6e2e690847f671e036';
+    const existedQuizId = '658c2dd2fbcd909d329f0ffd';
     const notExistedQuizId = '65895a6e2e690847f671e037';
 
     beforeAll(async () => (loginRes = await login(server)));
