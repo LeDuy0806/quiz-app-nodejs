@@ -32,7 +32,9 @@ const createPlayerResult = asyncHandler(async (req, res) => {
 
 const getPlayerResults = asyncHandler(async (req, res) => {
     try {
-        const playerResults = await PlayerResult.find();
+        const playerResults = await PlayerResult.find()
+            .populate('player')
+            .populate('game');
         res.status(constants.OK).json(playerResults);
     } catch (error) {
         res.status(constants.SERVER_ERROR).json({ message: error.message });

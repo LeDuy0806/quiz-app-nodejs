@@ -72,6 +72,20 @@ const getQuestions = asyncHandler(async (req, res) => {
     }
 });
 
+const getAllQuestion = asyncHandler(async (req, res) => {
+    try {
+        const questions = await Question.find().populate('creator');
+        if (!questions) {
+            return res
+                .status(constants.NOT_FOUND)
+                .json({ message: 'Question not found' });
+        }
+        res.status(constants.OK).json(questions);
+    } catch (error) {
+        res.status(constants.SERVER_ERROR).json({ message: error.message });
+    }
+});
+
 const getQuestion = asyncHandler(async (req, res) => {
     const { quizId, questionId } = req.params;
     try {
@@ -128,6 +142,42 @@ const deleteQuestion = asyncHandler(async (req, res) => {
         await Question.findByIdAndRemove(questionId);
         res.status(constants.OK).json(quiz);
     } catch (error) {
+        res.status(constants.SERVER_ERROR).json({ message: error.message });
+    }
+});
+
+const createQuestion = asyncHandler(async (req, res) => {
+    const {
+        backgroundImage,
+        optionQuestion,
+        questionType,
+        content,
+        pointType,
+        answerTime,
+        answerList,
+        questionIndex,
+        maxCorrectAnswer,
+        correctAnswerCount,
+        answerCorrect
+    } = req.body;
+
+    const newQuestion = new Question({
+        backgroundImage,
+        optionQuestion,
+        questionType,
+        content,
+        pointType,
+        answerTime,
+        answerList,
+        questionIndex,
+        maxCorrectAnswer,
+        correctAnswerCount,
+        answerCorrect
+    });
+    try {
+        const question = await newQuestion.save();
+        res.status(constants.CREATE).json(question);
+    } catch {
         res.status(constants.SERVER_ERROR).json({ message: error.message });
     }
 });
@@ -224,7 +274,9 @@ const updateQuestion = asyncHandler(async (req, res) => {
 
 export {
     addQuestion,
+    createQuestion,
     getQuestions,
+    getAllQuestion,
     getQuestion,
     updateQuestion,
     deleteQuestion

@@ -129,7 +129,7 @@ const getQuizzesDiscoverPage = asyncHandler(async (req, res) => {
 //access Authenticated user
 const getQuizzes = asyncHandler(async (req, res) => {
     try {
-        const quizzes = await Quiz.find();
+        const quizzes = await Quiz.find().populate('creator');
         res.status(constants.OK).json(quizzes);
     } catch (error) {
         res.status(constants.SERVER_ERROR);

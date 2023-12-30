@@ -7,16 +7,20 @@ import {
     deleteLeaderBoard,
     getLeaderBoard,
     addPlayerResult,
-    updateCurrentLeaderBoard
+    updateCurrentLeaderBoard,
+    updateLeaderBoard,
+    getLeaderBoards
 } from '../controllers/leaderBoardController.js';
 import { verifyAccessToken } from '../middlewares/authMiddleware.js';
 
 leaderBoardRouter.use(verifyAccessToken);
+leaderBoardRouter.get('/', getLeaderBoards);
 leaderBoardRouter.get('/:leaderBoardId', getLeaderBoard);
 leaderBoardRouter.get('/history/:id', getHistory);
 
 leaderBoardRouter.post('/', createLeaderBoard);
 
+leaderBoardRouter.put(':id', updateLeaderBoard);
 leaderBoardRouter.delete('/:id', deleteLeaderBoard);
 
 leaderBoardRouter.patch('/:leaderBoardId/addPlayerResult', addPlayerResult);

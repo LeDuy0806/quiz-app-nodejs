@@ -39,6 +39,17 @@ const getHistory = asyncHandler(async (req, res) => {
     }
 });
 
+const getLeaderBoards = asyncHandler(async (req, res) => {
+    try {
+        const leaderBoards = await LeaderBoard.find()
+            .populate('game')
+            .populate('quiz');
+        res.status(constants.OK).json(leaderBoards);
+    } catch (error) {
+        res.status(constants.SERVER_ERROR).json({ message: error.message });
+    }
+});
+
 const createLeaderBoard = asyncHandler(async (req, res) => {
     const { game, quiz, pin, playerResultList, currentLeaderBoard } = req.body;
 
@@ -122,6 +133,34 @@ const getLeaderBoard = asyncHandler(async (req, res) => {
     }
 });
 
+const updateLeaderBoard = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res
+            .status(constants.NOT_FOUND)
+            .json(`No leaderboard with id: ${id}`);
+    }
+
+    const { game, quiz, playerResultList, pin, currentLeaderBoard } = req.body;
+
+    const leaderBoard = new LeaderBoard({
+        game,
+        quiz,
+        playerResultList,
+        pin,
+        currentLeaderBoard
+    });
+
+    try {
+        const newLeaderBoard = await Game.findByIdAndUpdate(id, leaderBoard, {
+            new: true
+        });
+        res.status(constants.OK).json(newLeaderBoard);
+    } catch (error) {
+        res.status(constants.SERVER_ERROR).json({ message: error.message });
+    }
+});
+
 const addPlayerResult = asyncHandler(async (req, res) => {
     const { leaderBoardId } = req.params;
     const { playerResultId } = req.body;
@@ -157,7 +196,9 @@ const updateCurrentLeaderBoard = asyncHandler(async (req, res) => {
 
 export {
     getHistory,
+    getLeaderBoards,
     createLeaderBoard,
+    updateLeaderBoard,
     deleteLeaderBoard,
     getLeaderBoard,
     addPlayerResult,

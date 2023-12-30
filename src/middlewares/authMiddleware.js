@@ -61,7 +61,6 @@ const verifyAccessToken = asyncHandler(async (req, res, next) => {
 
         jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
             if (err) {
-                console.log(err);
                 if (err instanceof TokenExpiredError) {
                     res.status(constants.UNAUTHORIZED);
                     throw new Error('Token expired');
@@ -92,7 +91,7 @@ const verifyAdmin = asyncHandler(async (req, res, next) => {
             }
 
             const user = decoded.user;
-            console.log(user);
+            // console.log(user);
             //check admin role
             if (user.userType === 'Admin') {
                 next();
