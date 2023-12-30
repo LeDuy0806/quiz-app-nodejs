@@ -33,15 +33,50 @@ const getUsers = asyncHandler(async (req, res) => {
 });
 
 const createUser = asyncHandler(async (req, res) => {
-    const { userType, userName, fullName, email, password } = req.body;
-    const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(password, salt);
-    const user = new User({
+    const {
+        avatar,
+        bio,
+        emailToken,
         userType,
-        fullName,
         userName,
-        email,
-        password: hashedPassword
+        firstName,
+        lastName,
+        mail,
+        password,
+        point,
+        follows,
+        friends,
+        workspace
+    } = req.body;
+
+    const existsEmail = await User.findOne({ mail });
+    if (existsEmail) {
+        res.status(constants.UNPROCESSABLE_ENTITY);
+        throw new Error('Email already exists');
+    }
+
+    const existsUser = await User.findOne({ mail });
+    if (existsUser) {
+        res.status(constants.UNPROCESSABLE_ENTITY);
+        throw new Error('UserName already exists');
+    }
+
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(password ? password : '1', salt);
+    const user = new User({
+        avatar,
+        bio,
+        emailToken,
+        userType,
+        userName,
+        firstName,
+        lastName,
+        mail,
+        password: hashedPassword,
+        point,
+        follows,
+        friends,
+        workspace
     });
 
     try {
@@ -54,11 +89,24 @@ const createUser = asyncHandler(async (req, res) => {
 
 const updateUser = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { firstName, lastName, userName, avatar, bio } = req.body;
+    const { firstName, lastName, userName, avatar, mail, userType, workspace } =
+        req.body;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
         return res.status(constants.NOT_FOUND).json(`No user with id: ${id}`);
     }
+
+    // const existsEmail = await User.findOne({ mail });
+    // if (existsEmail) {
+    //     res.status(constants.UNPROCESSABLE_ENTITY);
+    //     throw new Error('Email already exists');
+    // }
+
+    // const existsUser = await User.findOne({ mail });
+    // if (existsUser) {
+    //     res.status(constants.UNPROCESSABLE_ENTITY);
+    //     throw new Error('UserName already exists');
+    // }
 
     if (userName.length < 5 || userName.length > 15) {
         return res.status(constants.NOT_FOUND).json('User Name is not format');
@@ -77,11 +125,13 @@ const updateUser = asyncHandler(async (req, res) => {
 
     const user = new User({
         _id: id,
-        avatar,
         firstName,
         lastName,
         userName,
-        bio,
+        avatar,
+        mail,
+        workspace,
+        userType,
         update: newUpdate
     });
 

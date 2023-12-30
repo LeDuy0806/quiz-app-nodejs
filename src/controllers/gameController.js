@@ -34,7 +34,7 @@ const createGame = asyncHandler(async (req, res) => {
 
     try {
         const newGame = await game.save();
-        res.status(constants.CREATE).json(game);
+        res.status(constants.CREATE).json(newGame);
     } catch (error) {
         res.status(constants.SERVER_ERROR).json({ message: error.message });
     }
@@ -42,7 +42,7 @@ const createGame = asyncHandler(async (req, res) => {
 
 const getGames = asyncHandler(async (req, res) => {
     try {
-        const games = await Game.find();
+        const games = await Game.find().populate('host').populate('quiz');
         res.status(constants.OK).json(games);
     } catch (error) {
         res.status(constants.SERVER_ERROR).json({ message: error.message });

@@ -19,7 +19,8 @@ const app = express();
 app.use(cors());
 app.use(cookieParser());
 app.use(express.static('public'));
-app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.json());
+
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(route);
 app.use(errorHandler);

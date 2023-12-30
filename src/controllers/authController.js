@@ -11,7 +11,7 @@ import { EmailFormat } from '../utilsTest/auth.js';
 const generateAccessToken = async (data) => {
     try {
         const token = jwt.sign(data, process.env.ACCESS_TOKEN_SECRET, {
-            expiresIn: process.env.EXPIRE_TIME || '10m'
+            expiresIn: process.env.EXPIRE_TIME || '1h'
         });
         return token;
     } catch (error) {
@@ -293,6 +293,7 @@ const requestRefreshToken = asyncHandler(async (req, res) => {
 
 const userLogout = asyncHandler(async (req, res) => {
     const { id } = req.params;
+    console.log(id);
     try {
         const result = await RefreshToken.deleteMany({
             user_id: id

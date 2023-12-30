@@ -52,7 +52,7 @@ const userSchema = new mongoose.Schema({
     },
 
     workspace: {
-        type: Object
+        type: String
     },
 
     bio: {
