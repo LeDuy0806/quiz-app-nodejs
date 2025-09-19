@@ -89,7 +89,7 @@ const createUser = asyncHandler(async (req, res) => {
 
 const updateUser = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { firstName, lastName, userName, avatar, mail, userType, workspace } =
+    const { firstName, lastName, userName, avatar, mail, userType, workspace, bio } =
         req.body;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -112,11 +112,11 @@ const updateUser = asyncHandler(async (req, res) => {
         return res.status(constants.NOT_FOUND).json('User Name is not format');
     }
 
-    if (firstName.length > 4) {
+    if (firstName.length > 5) {
         return res.status(constants.NOT_FOUND).json('First Name is not format');
     }
 
-    if (lastName.length > 4) {
+    if (lastName.length > 5) {
         return res.status(constants.NOT_FOUND).json('Last Name is not format');
     }
 
@@ -131,6 +131,7 @@ const updateUser = asyncHandler(async (req, res) => {
         avatar,
         mail,
         workspace,
+        bio,
         userType,
         update: newUpdate
     });

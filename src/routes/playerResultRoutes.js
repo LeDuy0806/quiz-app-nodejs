@@ -25,7 +25,7 @@ playerResultRouter.get('/:playerResultId/answers/:answerId', getAnswer);
 
 playerResultRouter.post('/', createPlayerResult);
 
-playerResultRouter.put('/:id', updatePlayerResult);
+playerResultRouter.patch('/:id', updatePlayerResult);
 playerResultRouter.patch('/:playerId/results/:gameId', addPlayerResult);
 playerResultRouter.patch('/:playerResultId/answers/:answerId', updateAnswer);
 playerResultRouter.patch('/:playerResultId/answers', addAnswer);
